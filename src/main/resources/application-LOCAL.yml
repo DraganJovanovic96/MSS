@@ -1,0 +1,40 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mss_db
+    username: ${username}
+    password: ${password}
+    driver-class-name: org.postgresql.Driver
+  oauth2:
+    resourceserver:
+      opaquetoken:
+        introspection-uri: https://oauth2.googleapis.com/tokeninfo
+      jwt:
+        issuer-uri: https://accounts.google.com
+        jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    validate-on-migrate: true
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+
+
+application:
+  security:
+    jwt:
+      #secret-key should be stored as an environment variable but since project is public,
+      #it will be set in application.yml for cloning purposes.
+      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      expiration: 86400000 # a day
+      refresh-token:
+        expiration: 604800000 # 7 days
