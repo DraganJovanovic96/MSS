@@ -32,9 +32,7 @@ spring:
 application:
   security:
     jwt:
-      #secret-key should be stored as an environment variable but since project is public,
-      #it will be set in application.yml for cloning purposes.
-      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      secret-key: ${secret-key}
       expiration: 86400000 # a day
       refresh-token:
         expiration: 604800000 # 7 days
