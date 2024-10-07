@@ -19,13 +19,13 @@ import java.util.List;
 @Filter(name = "deletedServiceFilter", condition = "deleted = :isDeleted")
 public class Service extends BaseEntity<Long> {
     /**
-     * The start date of the holiday.
+     * The start date of the service.
      */
     @Column
     private LocalDate startDate;
 
     /**
-     * The end date of the holiday.
+     * The end date of the service.
      */
     @Column
     private LocalDate endDate;

@@ -1,8 +1,11 @@
 package com.mss.config;
 
+import com.mss.mapper.UserMapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.MappingInheritanceStrategy;
 import org.mapstruct.ReportingPolicy;
+import org.mapstruct.factory.Mappers;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -27,9 +30,9 @@ public class MapStructConfig {
     /**
      * This method creates a bean of userMapper, so it can be used by IoC.
      */
-//    @Bean
-//    public UserMapper userMapper() {
-//        return Mappers.getMapper(UserMapper.class);
-//    }
+    @Bean
+    public UserMapper userMapper() {
+        return Mappers.getMapper(UserMapper.class);
+    }
 
 }
