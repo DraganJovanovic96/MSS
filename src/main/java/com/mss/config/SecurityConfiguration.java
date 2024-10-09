@@ -13,12 +13,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
-
-import static com.mss.enumeration.Permission.*;
+import static com.mss.enumeration.Permission.ADMIN_READ;
 import static com.mss.enumeration.Role.ADMIN;
-import static com.mss.enumeration.Role.USER;
 import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
 
 /**
  * SecurityConfiguration is a configuration class that defines the security settings and filters for the application.
@@ -74,20 +71,12 @@ public class SecurityConfiguration {
                                 "/configuration/security",
                                 "/swagger-ui/**",
                                 "/webjars/**",
-                                "api/v1/transactions",
                                 "/swagger-ui.html,"
                         )
                         .permitAll()
 
-                        .requestMatchers("/api/v1/demo").hasAnyRole(ADMIN.name())
-                        .requestMatchers(GET, "/api/v1/demo").hasAnyAuthority(ADMIN_READ.name())
-
-                        .requestMatchers("/api/v1/user-game").hasAnyRole(ADMIN.name())
-                        .requestMatchers(POST, "/api/v1/user-game").hasAnyAuthority(ADMIN_CREATE.name())
-
-                        .requestMatchers("/api/v1/transactions").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/transactions").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
-                        .requestMatchers(POST, "/api/v1/transactions").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+                        .requestMatchers("/api/v1/customers").hasAnyRole(ADMIN.name())
+                        .requestMatchers(GET, "/api/v1/customers").hasAnyAuthority(ADMIN_READ.name())
 
                         .anyRequest()
                         .authenticated()
