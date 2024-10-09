@@ -1,5 +1,6 @@
 package com.mss.config;
 
+import com.mss.mapper.CustomerMapper;
 import com.mss.mapper.UserMapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.MappingInheritanceStrategy;
@@ -35,4 +36,11 @@ public class MapStructConfig {
         return Mappers.getMapper(UserMapper.class);
     }
 
+    /**
+     * This method creates a bean of customerMapper, so it can be used by IoC.
+     */
+    @Bean
+    public CustomerMapper customerMapper() {
+        return Mappers.getMapper(CustomerMapper.class);
+    }
 }
