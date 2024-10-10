@@ -78,7 +78,10 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/customers").hasAnyRole(ADMIN.name())
                         .requestMatchers(GET, "/api/v1/customers").hasAnyAuthority(ADMIN_READ.name())
 
-                        .anyRequest()
+                        .requestMatchers("/api/v1/vehicles").hasAnyRole(ADMIN.name())
+                        .requestMatchers(GET, "/api/v1/vehicles").hasAnyAuthority(ADMIN_READ.name())
+
+                                .anyRequest()
                         .authenticated()
                 )
                 .sessionManagement(sessionManagement -> sessionManagement

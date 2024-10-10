@@ -1,5 +1,6 @@
 package com.mss.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -38,6 +39,7 @@ public class ServiceDto extends BaseEntityDto {
     /**
      * The vehicle service is provided on.
      */
+    @JsonIgnoreProperties({"customerDto", "serviceDtos"})
     private VehicleDto vehicleDto;
 
     /**

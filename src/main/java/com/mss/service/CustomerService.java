@@ -25,7 +25,7 @@ public interface CustomerService {
     /**
      * A method for retrieving all customers implemented in CustomerServiceImpl class.
      *
-     * @return a list of all CustomersDto
+     * @return a list of all CustomersDtos
      */
     List<CustomerDto> getAllCustomers();
 }
