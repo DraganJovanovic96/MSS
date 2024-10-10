@@ -1,14 +1,18 @@
 package com.mss.service.impl;
 
+import com.mss.dto.CustomerCreateDto;
 import com.mss.dto.CustomerDto;
 import com.mss.mapper.CustomerMapper;
 import com.mss.model.Customer;
 import com.mss.repository.CustomerRepository;
 import com.mss.service.CustomerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The CustomerServiceImpl implements CustomerService and
@@ -54,5 +58,33 @@ public class CustomerServiceImpl implements CustomerService {
         List<Customer> customers = customerRepository.findAll();
 
         return customerMapper.customersToCustomerDtos(customers);
+    }
+
+    /**
+     * This method saves a new customer. It is implemented in CustomerController class.
+     *
+     * @param customerCreateDto the DTO containing the information for the new customer to be saved
+     * @return a {@link CustomerDto} object representing the saved customer
+     * @throws ResponseStatusException if the phone number already exists
+     */
+    @Override
+    public CustomerDto saveCustomer(CustomerCreateDto customerCreateDto) {
+        if (customerRepository.findByPhoneNumber(customerCreateDto.getPhoneNumber()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Phone number already exists.");
+        }
+        Customer customer = customerRepository.save((customerMapper.customerCreateDtoToCustomer(customerCreateDto)));
+
+        return customerMapper.customerToCustomerDto(customer);
+    }
+
+    @Override
+    public CustomerDto findOneById(Long customerId) {
+        Optional<Customer> customer = customerRepository.findById(customerId);
+
+        if (customer.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer id doesn't exist");
+        }
+
+        return customerMapper.customerToCustomerDto(customer.get());
     }
 }

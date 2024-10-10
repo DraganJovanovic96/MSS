@@ -1,5 +1,6 @@
 package com.mss.service;
 
+import com.mss.dto.CustomerCreateDto;
 import com.mss.dto.CustomerDto;
 
 import java.util.List;
@@ -28,4 +29,14 @@ public interface CustomerService {
      * @return a list of all CustomersDtos
      */
     List<CustomerDto> getAllCustomers();
+
+    /**
+     * A method for saving customer. It is implemented in CustomerServiceImpl class.
+     *
+     * @param customerCreateDto the DTO containing the data to create the new customer
+     * @return the newly created CustomerDto
+     */
+    CustomerDto saveCustomer(CustomerCreateDto customerCreateDto);
+
+    CustomerDto findOneById(Long skillId);
 }
