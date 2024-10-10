@@ -1,5 +1,6 @@
 package com.mss.mapper;
 
+import com.mss.dto.CustomerCreateDto;
 import com.mss.dto.CustomerDto;
 import com.mss.model.Customer;
 import org.mapstruct.Mapper;
@@ -33,4 +34,7 @@ public interface CustomerMapper {
      * @return a List<CustomerDto> containing the CustomerDtos information
      */
     List<CustomerDto> customersToCustomerDtos(List<Customer> customer);
+
+    @Mapping(target= "vehicles", ignore = true)
+    Customer customerCreateDtoToCustomer(CustomerCreateDto customerCreateDto);
 }

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The CustomerRepository interface extends JpaRepository to inherit JPA-based CRUD methods and custom
@@ -24,4 +25,12 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
      * @return List of customers that are fetched
      */
     List<Customer> findByFirstnameAndLastname(String firstname, String lastname);
+
+    /**
+     * Find a customer by their phone number.
+     *
+     * @param phoneNumber the phone number of the customer
+     * @return an Optional containing the customer if found, or empty if not
+     */
+    Optional<Customer> findByPhoneNumber(String phoneNumber);
 }

@@ -1,14 +1,18 @@
 package com.mss.service.impl;
 
+import com.mss.dto.CustomerCreateDto;
 import com.mss.dto.CustomerDto;
 import com.mss.mapper.CustomerMapper;
 import com.mss.model.Customer;
 import com.mss.repository.CustomerRepository;
 import com.mss.service.CustomerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The CustomerServiceImpl implements CustomerService and
@@ -54,5 +58,60 @@ public class CustomerServiceImpl implements CustomerService {
         List<Customer> customers = customerRepository.findAll();
 
         return customerMapper.customersToCustomerDtos(customers);
+    }
+
+    /**
+     * This method saves a new customer. It is implemented in CustomerController class.
+     *
+     * @param customerCreateDto the DTO containing the information for the new customer to be saved
+     * @return a {@link CustomerDto} object representing the saved customer
+     * @throws ResponseStatusException if the phone number already exists
+     */
+    @Override
+    public CustomerDto saveCustomer(CustomerCreateDto customerCreateDto) {
+        if (customerRepository.findByPhoneNumber(customerCreateDto.getPhoneNumber()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Phone number already exists.");
+        }
+        Customer customer = customerRepository.save((customerMapper.customerCreateDtoToCustomer(customerCreateDto)));
+
+        return customerMapper.customerToCustomerDto(customer);
+    }
+
+    /**
+     * Finds a customer by their id.
+     *
+     * @param customerId the unique identifier of the customer to retrieve
+     * @return a {@link CustomerDto} representing the found customer
+     * @throws ResponseStatusException if no customer is found with the given id,
+     *                                 it throws a 404 NOT FOUND response with an appropriate message
+     */
+    @Override
+    public CustomerDto findOneById(Long customerId) {
+        Optional<Customer> customer = customerRepository.findById(customerId);
+
+        if (customer.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer id doesn't exist");
+        }
+
+        return customerMapper.customerToCustomerDto(customer.get());
+    }
+
+    /**
+     * Finds a customer by their phone number.
+     *
+     * @param phoneNumber the phone number of the customer to retrieve
+     * @return a {@link CustomerDto} representing the found customer
+     * @throws ResponseStatusException if no customer is found with the given phone number,
+     *                                 it throws a 404 NOT FOUND response with an appropriate message
+     */
+    @Override
+    public CustomerDto findByPhoneNumber(String phoneNumber) {
+        Optional<Customer> customer = customerRepository.findByPhoneNumber(phoneNumber);
+
+        if (customer.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer with that phone number doesn't exist");
+        }
+
+        return customerMapper.customerToCustomerDto(customer.get());
     }
 }
