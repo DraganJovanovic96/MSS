@@ -2,6 +2,7 @@ package com.mss.config;
 
 import com.mss.mapper.CustomerMapper;
 import com.mss.mapper.UserMapper;
+import com.mss.mapper.VehicleMapper;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.MappingInheritanceStrategy;
 import org.mapstruct.ReportingPolicy;
@@ -42,5 +43,13 @@ public class MapStructConfig {
     @Bean
     public CustomerMapper customerMapper() {
         return Mappers.getMapper(CustomerMapper.class);
+    }
+
+    /**
+     * This method creates a bean of vehicleMapper, so it can be used by IoC.
+     */
+    @Bean
+    public VehicleMapper vehicleMapper() {
+        return Mappers.getMapper(VehicleMapper.class);
     }
 }

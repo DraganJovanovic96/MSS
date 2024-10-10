@@ -1,5 +1,6 @@
 package com.mss.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.util.List;
@@ -42,10 +43,12 @@ public class VehicleDto extends BaseEntityDto {
     /**
      * Owner of vehicles.
      */
+    @JsonIgnoreProperties("vehicleDtos")
     private CustomerDto customerDto;
 
     /**
      * Vehicle's services.
      */
+    @JsonIgnoreProperties("vehicleDtos")
     private List<ServiceDto> serviceDtos;
 }

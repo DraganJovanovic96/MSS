@@ -3,6 +3,7 @@ package com.mss.mapper;
 import com.mss.dto.CustomerDto;
 import com.mss.model.Customer;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ public interface CustomerMapper {
      * @param customer the Customer object to be mapped to a CustomerDto object
      * @return a CustomerDto object containing the customer's information
      */
-//    @Mapping(target = "vehicleDto", source = "customer.vehicles")
+    @Mapping(target = "vehicleDtos", source = "customer.vehicles")
     CustomerDto customerToCustomerDto(Customer customer);
 
     /**
