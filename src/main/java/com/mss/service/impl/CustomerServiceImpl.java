@@ -40,6 +40,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public List<CustomerDto> getCustomersByFirstAndLastName(String firstname, String lastname) {
         List<Customer> customers = customerRepository.findByFirstnameAndLastname(firstname, lastname);
+
         return customerMapper.customersToCustomerDtos(customers);
     }
 
@@ -51,6 +52,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public List<CustomerDto> getAllCustomers() {
         List<Customer> customers = customerRepository.findAll();
+
         return customerMapper.customersToCustomerDtos(customers);
     }
 }
