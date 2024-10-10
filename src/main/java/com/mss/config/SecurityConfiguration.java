@@ -78,6 +78,9 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/customers").hasAnyRole(ADMIN.name())
                         .requestMatchers(GET, "/api/v1/customers").hasAnyAuthority(ADMIN_READ.name())
 
+                        .requestMatchers("/api/v1/services").hasAnyRole(ADMIN.name())
+                        .requestMatchers(GET, "/api/v1/services").hasAnyAuthority(ADMIN_READ.name())
+
                         .requestMatchers("/api/v1/vehicles").hasAnyRole(ADMIN.name())
                         .requestMatchers(GET, "/api/v1/vehicles").hasAnyAuthority(ADMIN_READ.name())
 

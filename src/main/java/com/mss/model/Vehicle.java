@@ -26,7 +26,6 @@ public class Vehicle extends BaseEntity<Long> {
     /**
      * Model name.
      */
-    @Column(unique = true)
     private String model;
 
     /**
@@ -38,7 +37,7 @@ public class Vehicle extends BaseEntity<Long> {
     /**
      * Vin (vehicle identification number).
      */
-    @Column
+    @Column(unique = true)
     private String vin;
 
     /**

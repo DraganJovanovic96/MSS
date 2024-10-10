@@ -45,6 +45,7 @@ public class ServiceDto extends BaseEntityDto {
     /**
      * The user who performed the service.
      */
+    @JsonIgnoreProperties("serviceDtos")
     private UserDto userDto;
 
     /**
