@@ -42,8 +42,8 @@ public class ServiceController {
      */
     @GetMapping
     @PreAuthorize("hasAuthority('admin:read')")
-    @ApiOperation(value = "Get all customers")
-    @ApiResponse(code = 200, message = "Customer data successfully fetched.")
+    @ApiOperation(value = "Get all services")
+    @ApiResponse(code = 200, message = "Service data successfully fetched.")
     public ResponseEntity<List<ServiceDto>> getAllServices() {
         return ResponseEntity.status(HttpStatus.OK).body(serviceService.getAllServices());
     }
