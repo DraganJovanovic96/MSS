@@ -77,12 +77,39 @@ public class CustomerServiceImpl implements CustomerService {
         return customerMapper.customerToCustomerDto(customer);
     }
 
+    /**
+     * Finds a customer by their id.
+     *
+     * @param customerId the unique identifier of the customer to retrieve
+     * @return a {@link CustomerDto} representing the found customer
+     * @throws ResponseStatusException if no customer is found with the given id,
+     *                                 it throws a 404 NOT FOUND response with an appropriate message
+     */
     @Override
     public CustomerDto findOneById(Long customerId) {
         Optional<Customer> customer = customerRepository.findById(customerId);
 
         if (customer.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer id doesn't exist");
+        }
+
+        return customerMapper.customerToCustomerDto(customer.get());
+    }
+
+    /**
+     * Finds a customer by their phone number.
+     *
+     * @param phoneNumber the phone number of the customer to retrieve
+     * @return a {@link CustomerDto} representing the found customer
+     * @throws ResponseStatusException if no customer is found with the given phone number,
+     *                                 it throws a 404 NOT FOUND response with an appropriate message
+     */
+    @Override
+    public CustomerDto findByPhoneNumber(String phoneNumber) {
+        Optional<Customer> customer = customerRepository.findByPhoneNumber(phoneNumber);
+
+        if (customer.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer with that phone number doesn't exist");
         }
 
         return customerMapper.customerToCustomerDto(customer.get());

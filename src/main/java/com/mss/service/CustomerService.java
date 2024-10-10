@@ -38,5 +38,19 @@ public interface CustomerService {
      */
     CustomerDto saveCustomer(CustomerCreateDto customerCreateDto);
 
+    /**
+     * Finds a customer by their unique identifier.
+     *
+     * @param skillId the unique identifier of the customer to retrieve
+     * @return a {@link CustomerDto} representing the found customer
+     */
     CustomerDto findOneById(Long skillId);
+
+    /**
+     * Finds a customer by their phone number.
+     *
+     * @param phoneNumber the phone number of the customer to retrieve
+     * @return a {@link CustomerDto} representing the found customer
+     */
+    CustomerDto findByPhoneNumber(String phoneNumber);
 }
