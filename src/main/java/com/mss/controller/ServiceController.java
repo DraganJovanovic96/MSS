@@ -41,7 +41,7 @@ public class ServiceController {
      * @return ResponseEntity {@link ServiceDto}  containing the services' data.
      */
     @GetMapping
-    @PreAuthorize("hasAuthority('admin:read')")
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
     @ApiOperation(value = "Get all services")
     @ApiResponse(code = 200, message = "Service data successfully fetched.")
     public ResponseEntity<List<ServiceDto>> getAllServices() {

@@ -78,17 +78,20 @@ public class SecurityConfiguration {
                         .permitAll()
 
                         .requestMatchers("/api/v1/customers").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/customers").hasAnyAuthority(ADMIN_READ.name(),USER_CREATE.name())
+                        .requestMatchers(GET, "/api/v1/customers").hasAnyAuthority(ADMIN_READ.name(),USER_READ.name())
                         .requestMatchers(POST, "/api/v1/customers").hasAnyAuthority(ADMIN_CREATE.name(),USER_CREATE.name())
 
-                        .requestMatchers("/api/v1/services").hasAnyRole(ADMIN.name())
-                        .requestMatchers(GET, "/api/v1/services").hasAnyAuthority(ADMIN_READ.name())
+                        .requestMatchers("/api/v1/services").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, "/api/v1/services").hasAnyAuthority(ADMIN_READ.name(),USER_READ.name())
+                        .requestMatchers(POST, "/api/v1/services").hasAnyAuthority(ADMIN_CREATE.name(),USER_CREATE.name())
 
-                        .requestMatchers("/api/v1/service-types").hasAnyRole(ADMIN.name())
-                        .requestMatchers(GET, "/api/v1/service-types").hasAnyAuthority(ADMIN_READ.name())
+                        .requestMatchers("/api/v1/service-types").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, "/api/v1/service-types").hasAnyAuthority(ADMIN_READ.name(),USER_READ.name())
+                        .requestMatchers(POST, "/api/v1/service-types").hasAnyAuthority(ADMIN_CREATE.name(),USER_CREATE.name())
 
-                        .requestMatchers("/api/v1/vehicles").hasAnyRole(ADMIN.name())
-                        .requestMatchers(GET, "/api/v1/vehicles").hasAnyAuthority(ADMIN_READ.name())
+                        .requestMatchers("/api/v1/vehicles").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, "/api/v1/vehicles").hasAnyAuthority(ADMIN_READ.name(),USER_READ.name())
+                        .requestMatchers(POST, "/api/v1/vehicles").hasAnyAuthority(ADMIN_CREATE.name(),USER_CREATE.name())
 
                                 .anyRequest()
                         .authenticated()

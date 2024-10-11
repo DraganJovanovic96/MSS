@@ -35,6 +35,11 @@ public interface CustomerMapper {
      */
     List<CustomerDto> customersToCustomerDtos(List<Customer> customer);
 
-    @Mapping(target= "vehicles", ignore = true)
+    /**
+     * Maps a CustomerCreateDto object to a Customer object.
+     *
+     * @param customerCreateDto the CustomerCreateDto object to be mapped to a Customer object
+     * @return a Customer object containing the CustomerCreateDto's information
+     */
     Customer customerCreateDtoToCustomer(CustomerCreateDto customerCreateDto);
 }
