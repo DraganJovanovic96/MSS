@@ -70,7 +70,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerDto saveCustomer(CustomerCreateDto customerCreateDto) {
         if (customerRepository.findByPhoneNumber(customerCreateDto.getPhoneNumber()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Phone number already exists.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Customer  with that phone number already exists.");
         }
         Customer customer = customerRepository.save((customerMapper.customerCreateDtoToCustomer(customerCreateDto)));
 

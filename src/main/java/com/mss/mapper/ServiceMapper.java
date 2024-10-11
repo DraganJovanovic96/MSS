@@ -1,5 +1,6 @@
 package com.mss.mapper;
 
+import com.mss.dto.ServiceCreateDto;
 import com.mss.dto.ServiceDto;
 import com.mss.model.Service;
 import org.mapstruct.Mapper;
@@ -25,7 +26,7 @@ public interface ServiceMapper {
      */
     @Mapping(target = "vehicleDto", source = "service.vehicle")
     @Mapping(target = "userDto", source = "service.user")
-    @Mapping(target = "serviceTypeDtos", source ="service.serviceTypes")
+    @Mapping(target = "serviceTypeDtos", source = "service.serviceTypes")
     ServiceDto serviceToServiceDto(Service service);
 
     /**
@@ -35,4 +36,12 @@ public interface ServiceMapper {
      * @return a List<ServiceDto> containing the ServiceDtos information
      */
     List<ServiceDto> serviceToServiceDtos(List<Service> services);
+
+    /**
+     * Maps a ServiceCreateDto object to a Service object.
+     *
+     * @param serviceCreateDto the ServiceCreateDto object to be mapped to a Service object
+     * @return a Service object containing the ServiceCreateDto's information
+     */
+    Service serviceCreateDtoToService(ServiceCreateDto serviceCreateDto);
 }

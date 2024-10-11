@@ -4,6 +4,8 @@ import com.mss.model.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * The VehicleRepository interface extends JpaRepository to inherit JPA-based CRUD methods and custom
  * methods for accessing and modifying Vehicle entities.
@@ -14,5 +16,12 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
+    /**
+     * Find a vehicle by vin number.
+     *
+     * @param vin the vin number of the vehicle
+     * @return an Optional containing the Vehicle if found, or empty if not
+     */
+    Optional<Vehicle> findByVin(String vin);
 
 }
