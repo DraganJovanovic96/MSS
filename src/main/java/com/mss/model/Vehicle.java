@@ -31,7 +31,6 @@ public class Vehicle extends BaseEntity<Long> {
     /**
      * Vehicle plate.
      */
-    @Column(unique = true)
     private String vehiclePlate;
 
     /**

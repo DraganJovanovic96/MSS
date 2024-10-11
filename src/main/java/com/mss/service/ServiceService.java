@@ -1,5 +1,6 @@
 package com.mss.service;
 
+import com.mss.dto.ServiceCreateDto;
 import com.mss.dto.ServiceDto;
 
 import java.util.List;
@@ -19,4 +20,12 @@ public interface ServiceService {
      * @return a list of all ServicesDtos
      */
     List<ServiceDto> getAllServices();
+
+    /**
+     * A method for saving service. It is implemented in ServiceServiceImpl class.
+     *
+     * @param serviceCreateDto the DTO containing the data to create the new service
+     * @return the newly created ServiceDto
+     */
+    ServiceDto saveService(ServiceCreateDto serviceCreateDto);
 }

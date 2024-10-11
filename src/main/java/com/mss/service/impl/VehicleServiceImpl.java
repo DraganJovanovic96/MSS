@@ -55,19 +55,39 @@ public class VehicleServiceImpl implements VehicleService {
         return vehicleMapper.vehiclesToVehicleDtos(vehicles);
     }
 
+    /**
+     * Saves a new vehicle based on the provided VehicleCreateDto.
+     * <p>
+     * This method retrieves the customer associated with the provided customer ID from the VehicleCreateDto.
+     * If the customer exists, the vehicle is mapped from the DTO, associated with the customer,
+     * and then saved to the repository. The saved vehicle is then converted to a VehicleDto and returned.
+     * If the customer is not found, a ResponseStatusException is thrown with a 404 status code.
+     *
+     * @param vehicleCreateDto the data transfer object containing vehicle information to be saved.
+     * @return the VehicleDto representing the saved vehicle.
+     * @throws ResponseStatusException if the customer with the provided ID does not exist.
+     */
     @Override
     public VehicleDto saveVehicle(VehicleCreateDto vehicleCreateDto) {
+        Optional<Vehicle> optionalVehicle = vehicleRepository.findByVin(vehicleCreateDto.getVin());
+
+        if (optionalVehicle.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Vehicle with that vin already exists");
+        }
+
         Optional<Customer> optionalCustomer = customerRepository.findById(vehicleCreateDto.getCustomerId());
 
-        if (optionalCustomer.isPresent()) {
-            Customer customer = optionalCustomer.get();
-            Vehicle vehicle = vehicleMapper.vehicleCreateDtoToVehicle(vehicleCreateDto);
-            vehicle.setCustomer(customer);
-            vehicleRepository.save(vehicle);
-
-            return vehicleMapper.vehicleToVehicleDto(vehicle);
-        } else {
+        if (optionalCustomer.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer with that id doesn't exist");
         }
+
+        Customer customer = optionalCustomer.get();
+        Vehicle vehicle = vehicleMapper.vehicleCreateDtoToVehicle(vehicleCreateDto);
+        vehicle.setCustomer(customer);
+        vehicleRepository.save(vehicle);
+
+        return vehicleMapper.vehicleToVehicleDto(vehicle);
     }
 }
+
+
