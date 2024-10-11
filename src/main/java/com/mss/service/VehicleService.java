@@ -1,5 +1,6 @@
 package com.mss.service;
 
+import com.mss.dto.VehicleCreateDto;
 import com.mss.dto.VehicleDto;
 
 import java.util.List;
@@ -20,4 +21,12 @@ public interface VehicleService {
      * @return a list of all VehicleDtos
      */
     List<VehicleDto> getAllVehicles();
+
+    /**
+     * A method for saving vehicles. It is implemented in VehicleServiceImpl class.
+     *
+     * @param vehicleCreateDto the DTO containing the data to create the new vehicle
+     * @return the newly created VehicleDto
+     */
+    VehicleDto saveVehicle(VehicleCreateDto vehicleCreateDto);
 }

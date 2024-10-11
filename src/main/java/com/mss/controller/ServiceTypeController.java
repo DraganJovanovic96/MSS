@@ -39,7 +39,7 @@ public class ServiceTypeController {
      * @return ResponseEntity {@link ServiceTypeDto}  containing the service types' data.
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAuthority('admin:read')")
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
     @ApiOperation(value = "Get all service types")
     @ApiResponse(code = 200, message = "Service types data successfully fetched.")
     public ResponseEntity<List<ServiceTypeDto>> getServiceTypes() {

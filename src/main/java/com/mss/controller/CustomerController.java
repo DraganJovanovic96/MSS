@@ -102,7 +102,7 @@ public class CustomerController {
      */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('admin:create', 'user:create')")
-    @ApiOperation(value = "Save customer through CustomerDto")
+    @ApiOperation(value = "Save customer through CustomerCreateDto")
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Successfully saved customer.", response = CustomerDto.class),
             @ApiResponse(code = 409, message = "Customer already exists.")

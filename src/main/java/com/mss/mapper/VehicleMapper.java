@@ -1,5 +1,6 @@
 package com.mss.mapper;
 
+import com.mss.dto.VehicleCreateDto;
 import com.mss.dto.VehicleDto;
 import com.mss.model.Vehicle;
 import org.mapstruct.Mapper;
@@ -33,4 +34,12 @@ public interface VehicleMapper {
      * @return a List<VehicleDto> containing the vehicles information
      */
     List<VehicleDto> vehiclesToVehicleDtos(List<Vehicle> vehicles);
+
+    /**
+     * Maps a CustomerCreateDto object to a Customer object.
+     *
+     * @param vehicleCreateDto the VehicleCreateDto object to be mapped to a Vehicle object
+     * @return a Vehicle object containing the VehicleCreateDto's information
+     */
+    Vehicle vehicleCreateDtoToVehicle(VehicleCreateDto vehicleCreateDto);
 }
