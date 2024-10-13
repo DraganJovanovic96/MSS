@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The VehicleServiceImpl implements VehicleService and
@@ -69,19 +68,13 @@ public class VehicleServiceImpl implements VehicleService {
      */
     @Override
     public VehicleDto saveVehicle(VehicleCreateDto vehicleCreateDto) {
-        Optional<Vehicle> optionalVehicle = vehicleRepository.findByVin(vehicleCreateDto.getVin());
+        vehicleRepository.findByVin(vehicleCreateDto.getVin())
+                .ifPresent(vehicle -> {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Vehicle with that VIN already exists.");
+                });
+        Customer customer = customerRepository.findById(vehicleCreateDto.getCustomerId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer with that id doesn't exist"));
 
-        if (optionalVehicle.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Vehicle with that vin already exists");
-        }
-
-        Optional<Customer> optionalCustomer = customerRepository.findById(vehicleCreateDto.getCustomerId());
-
-        if (optionalCustomer.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer with that id doesn't exist");
-        }
-
-        Customer customer = optionalCustomer.get();
         Vehicle vehicle = vehicleMapper.vehicleCreateDtoToVehicle(vehicleCreateDto);
         vehicle.setCustomer(customer);
         vehicleRepository.save(vehicle);
@@ -89,5 +82,3 @@ public class VehicleServiceImpl implements VehicleService {
         return vehicleMapper.vehicleToVehicleDto(vehicle);
     }
 }
-
-

@@ -1,5 +1,6 @@
 package com.mss.service;
 
+import com.mss.dto.ServiceTypeCreateDto;
 import com.mss.dto.ServiceTypeDto;
 
 import java.util.List;
@@ -19,4 +20,13 @@ public interface ServiceTypeService {
      * @return a list of all ServiceTypeDtos
      */
     List<ServiceTypeDto> getAllServiceTypes();
+
+    /**
+     * A method for saving service type. It is implemented in ServiceTypeServiceImpl class.
+     *
+     * @param serviceTypeCreateDto the DTO containing the data to create the new service type
+     * @return the newly created ServiceType
+     */
+    ServiceTypeDto saveServiceType(ServiceTypeCreateDto serviceTypeCreateDto);
+
 }

@@ -1,18 +1,19 @@
 package com.mss.controller;
 
+import com.mss.dto.ServiceTypeCreateDto;
 import com.mss.dto.ServiceTypeDto;
 import com.mss.service.ServiceTypeService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -46,5 +47,26 @@ public class ServiceTypeController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(serviceTypeService.getAllServiceTypes());
+    }
+
+    /**
+     * Creates a new vehicleCreateDto using the information provided in the {@code VehicleCreateDto}
+     * and returns a ResponseEntity object with status code 201 (Created) and the saved VehicleDto
+     * object in the response body.
+     *
+     * @param serviceTypeCreateDto the DTO containing the information for the new vehicle to be created
+     * @return a ResponseEntity object with status code 201 (Created) and the saved VehicleDto
+     * object in the response body
+     */
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:create', 'user:create')")
+    @ApiOperation(value = "Save service type through ServiceTypeCreateDto")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Successfully saved service type.", response = ServiceTypeDto.class),
+            @ApiResponse(code = 409, message = "Service type already exists.")
+    })
+    public ResponseEntity<ServiceTypeDto> createServiceType(@Valid @RequestBody ServiceTypeCreateDto serviceTypeCreateDto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(serviceTypeService.saveServiceType(serviceTypeCreateDto));
     }
 }

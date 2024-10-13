@@ -49,6 +49,6 @@ public class VehicleDto extends BaseEntityDto {
     /**
      * Vehicle's services.
      */
-    @JsonIgnoreProperties("vehicleDtos")
+    @JsonIgnoreProperties({"vehicleDto","userDto"})
     private List<ServiceDto> serviceDtos;
 }

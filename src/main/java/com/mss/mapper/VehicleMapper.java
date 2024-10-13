@@ -16,7 +16,7 @@ import java.util.List;
  * @version 1.0
  * @since 1.0
  */
-@Mapper
+@Mapper(uses = ServiceMapper.class)
 public interface VehicleMapper {
     /**
      * Maps a Customer object to a CustomerDto object.
@@ -25,6 +25,7 @@ public interface VehicleMapper {
      * @return a VehicleDto object containing the vehicle's information
      */
     @Mapping(target = "customerDto", source = "customer")
+    @Mapping(target = "serviceDtos", source = "services")
     VehicleDto vehicleToVehicleDto(Vehicle vehicle);
 
     /**

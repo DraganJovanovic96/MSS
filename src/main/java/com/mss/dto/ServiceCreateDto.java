@@ -47,5 +47,4 @@ public class ServiceCreateDto {
      */
     @NotNull
     private Long userId;
-
 }

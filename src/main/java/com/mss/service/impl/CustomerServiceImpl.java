@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The CustomerServiceImpl implements CustomerService and
@@ -69,9 +68,11 @@ public class CustomerServiceImpl implements CustomerService {
      */
     @Override
     public CustomerDto saveCustomer(CustomerCreateDto customerCreateDto) {
-        if (customerRepository.findByPhoneNumber(customerCreateDto.getPhoneNumber()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Customer  with that phone number already exists.");
-        }
+        customerRepository.findByPhoneNumber(customerCreateDto.getPhoneNumber())
+                .ifPresent(customer -> {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "Customer with that phone number already exists.");
+                });
+
         Customer customer = customerRepository.save((customerMapper.customerCreateDtoToCustomer(customerCreateDto)));
 
         return customerMapper.customerToCustomerDto(customer);
@@ -87,13 +88,10 @@ public class CustomerServiceImpl implements CustomerService {
      */
     @Override
     public CustomerDto findOneById(Long customerId) {
-        Optional<Customer> customer = customerRepository.findById(customerId);
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer id doesn't exist"));
 
-        if (customer.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer id doesn't exist");
-        }
-
-        return customerMapper.customerToCustomerDto(customer.get());
+        return customerMapper.customerToCustomerDto(customer);
     }
 
     /**
@@ -106,12 +104,9 @@ public class CustomerServiceImpl implements CustomerService {
      */
     @Override
     public CustomerDto findByPhoneNumber(String phoneNumber) {
-        Optional<Customer> customer = customerRepository.findByPhoneNumber(phoneNumber);
+        Customer customer = customerRepository.findByPhoneNumber(phoneNumber)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer with that phone number doesn't exist"));
 
-        if (customer.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer with that phone number doesn't exist");
-        }
-
-        return customerMapper.customerToCustomerDto(customer.get());
+        return customerMapper.customerToCustomerDto(customer);
     }
 }
