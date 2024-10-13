@@ -14,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The ServiceServiceImpl implements ServiceService and
@@ -75,20 +74,15 @@ public class ServiceServiceImpl implements ServiceService {
      */
     @Override
     public ServiceDto saveService(ServiceCreateDto serviceCreateDto) {
-        Optional<User> user = userRepository.findById(serviceCreateDto.getUserId());
+        User user = userRepository.findById(serviceCreateDto.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User doesn't exist"));
 
-        if (user.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User doesn't exist");
-        }
-
-        Optional<Vehicle> vehicle = vehicleRepository.findById(serviceCreateDto.getVehicleId());
-        if (vehicle.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle doesn't exist");
-        }
+        Vehicle vehicle = vehicleRepository.findById(serviceCreateDto.getVehicleId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle doesn't exist"));
 
         com.mss.model.Service service = serviceMapper.serviceCreateDtoToService(serviceCreateDto);
-        service.setVehicle(vehicle.get());
-        service.setUser(user.get());
+        service.setVehicle(vehicle);
+        service.setUser(user);
 
         return serviceMapper.serviceToServiceDto(serviceRepository.save(service));
     }

@@ -1,5 +1,6 @@
 package com.mss.mapper;
 
+import com.mss.dto.ServiceTypeCreateDto;
 import com.mss.dto.ServiceTypeDto;
 import com.mss.model.ServiceType;
 import org.mapstruct.Mapper;
@@ -23,6 +24,14 @@ public interface ServiceTypeMapper {
      * @return a ServiceTypeDto object containing the service types's information
      */
     ServiceTypeDto serviceTypeToServiceTypeDto(ServiceType serviceType);
+
+    /**
+     * Maps a ServiceTypeCreateDto object to a ServiceType object.
+     *
+     * @param serviceTypeCreateDto the ServiceTypeCreateDto object to be mapped to a ServiceType object
+     * @return a ServiceType object containing the service types' information
+     */
+    ServiceType serviceTypeCreateDtoToServiceType(ServiceTypeCreateDto serviceTypeCreateDto);
 
     /**
      * Maps a list of ServiceType objects to a list of ServiceTypeDto objects.

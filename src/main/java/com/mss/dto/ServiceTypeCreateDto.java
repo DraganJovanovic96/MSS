@@ -1,5 +1,6 @@
 package com.mss.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -11,7 +12,7 @@ import lombok.Data;
  * @since 1.0
  */
 @Data
-public class ServiceTypeDto extends BaseEntityDto {
+public class ServiceTypeCreateDto extends BaseEntityDto {
     /**
      * The type of service provided.
      */
@@ -26,4 +27,10 @@ public class ServiceTypeDto extends BaseEntityDto {
      * The price of service provided.
      */
     private int price;
+
+    /**
+     * Id of service connected to service type.
+     */
+    @NotNull
+    private Long serviceId;
 }

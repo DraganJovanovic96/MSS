@@ -38,7 +38,7 @@ public class Customer extends BaseEntity<Long> {
     /**
      * The customer's phone number.
      */
-    @Column
+    @Column(unique = true)
     private String phoneNumber;
 
     /**
