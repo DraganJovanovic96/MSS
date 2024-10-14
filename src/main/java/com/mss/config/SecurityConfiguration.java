@@ -12,6 +12,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 import static com.mss.enumeration.Permission.*;
 import static com.mss.enumeration.Role.ADMIN;
@@ -61,6 +66,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeRequests(authorize -> authorize
                         .requestMatchers(
                                 "/api/v1/auth/**",
@@ -78,22 +84,22 @@ public class SecurityConfiguration {
                         .permitAll()
 
                         .requestMatchers("/api/v1/customers").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/customers").hasAnyAuthority(ADMIN_READ.name(),USER_READ.name())
-                        .requestMatchers(POST, "/api/v1/customers").hasAnyAuthority(ADMIN_CREATE.name(),USER_CREATE.name())
+                        .requestMatchers(GET, "/api/v1/customers").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
+                        .requestMatchers(POST, "/api/v1/customers").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
 
                         .requestMatchers("/api/v1/services").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/services").hasAnyAuthority(ADMIN_READ.name(),USER_READ.name())
-                        .requestMatchers(POST, "/api/v1/services").hasAnyAuthority(ADMIN_CREATE.name(),USER_CREATE.name())
+                        .requestMatchers(GET, "/api/v1/services").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
+                        .requestMatchers(POST, "/api/v1/services").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
 
                         .requestMatchers("/api/v1/service-types").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/service-types").hasAnyAuthority(ADMIN_READ.name(),USER_READ.name())
-                        .requestMatchers(POST, "/api/v1/service-types").hasAnyAuthority(ADMIN_CREATE.name(),USER_CREATE.name())
+                        .requestMatchers(GET, "/api/v1/service-types").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
+                        .requestMatchers(POST, "/api/v1/service-types").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
 
                         .requestMatchers("/api/v1/vehicles").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/vehicles").hasAnyAuthority(ADMIN_READ.name(),USER_READ.name())
-                        .requestMatchers(POST, "/api/v1/vehicles").hasAnyAuthority(ADMIN_CREATE.name(),USER_CREATE.name())
+                        .requestMatchers(GET, "/api/v1/vehicles").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
+                        .requestMatchers(POST, "/api/v1/vehicles").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
 
-                                .anyRequest()
+                        .anyRequest()
                         .authenticated()
                 )
                 .sessionManagement(sessionManagement -> sessionManagement
@@ -111,5 +117,18 @@ public class SecurityConfiguration {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://mywebsite.com"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
