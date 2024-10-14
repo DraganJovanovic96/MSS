@@ -119,6 +119,14 @@ public class SecurityConfiguration {
         return http.build();
     }
 
+    /**
+     * Configures CORS settings for the application.
+     *
+     * <p>This method defines the allowed origins, HTTP methods, and headers for CORS requests.
+     * It also specifies whether credentials (such as cookies or authorization headers) are allowed.</p>
+     *
+     * @return a {@link CorsConfigurationSource} that provides the CORS configuration for the application.
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
