@@ -26,9 +26,10 @@ public interface CustomerService {
     /**
      * A method for retrieving all customers implemented in CustomerServiceImpl class.
      *
-     * @return a list of all CustomersDtos
+     * @param isDeleted parameter that checks if object is soft deleted
+     * @return Customer data through CustomerDto
      */
-    List<CustomerDto> getAllCustomers();
+    List<CustomerDto> getAllCustomers(boolean isDeleted);
 
     /**
      * A method for saving customer. It is implemented in CustomerServiceImpl class.
@@ -44,7 +45,7 @@ public interface CustomerService {
      * @param skillId the unique identifier of the customer to retrieve
      * @return a {@link CustomerDto} representing the found customer
      */
-    CustomerDto findOneById(Long skillId);
+    CustomerDto findCustomerById(Long skillId, boolean isDeleted);
 
     /**
      * Finds a customer by their phone number.
@@ -52,5 +53,12 @@ public interface CustomerService {
      * @param phoneNumber the phone number of the customer to retrieve
      * @return a {@link CustomerDto} representing the found customer
      */
-    CustomerDto findByPhoneNumber(String phoneNumber);
+    CustomerDto findByPhoneNumber(String phoneNumber, boolean isDeleted);
+
+    /**
+     * A method for deleting customer. It is implemented in CustomerServiceImpl class.
+     *
+     * @param customerId parameter that is unique to entity
+     */
+    void deleteCustomer(Long customerId);
 }

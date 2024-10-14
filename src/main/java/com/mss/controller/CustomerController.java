@@ -36,19 +36,19 @@ public class CustomerController {
     private final CustomerService customerService;
 
     /**
-     * The endpoint accepts a GET request.
-     * Retrieves all customers data.
+     * This endpoint retrieves all customers data excluding deleted customers.
      *
-     * @return ResponseEntity {@link CustomerDto}  containing the customers' data.
+     * @return ResponseEntity<List> {@link CustomerDto} - The HTTP response containing the
+     * list of CustomerDto objects as the response body
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
-    @ApiOperation(value = "Get all customers")
-    @ApiResponse(code = 200, message = "Customer data successfully fetched.")
-    public ResponseEntity<List<CustomerDto>> getCustomers() {
-
+    @ApiOperation(value = "Get customers' data")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Customers' data successfully fetched.", response = CustomerDto.class)
+    })
+    public ResponseEntity<List<CustomerDto>> getAllCustomers() {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(customerService.getAllCustomers());
+                .body(customerService.getAllCustomers(false));
     }
 
     /**
@@ -59,15 +59,13 @@ public class CustomerController {
      * @return ResponseEntity<CustomerDto> containing the customer data for the specified id.
      */
     @GetMapping(value = "/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
-    @ApiOperation(value = "Get customer data")
+    @ApiOperation(value = "Get Customer's data")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Customer's data successfully fetched.", response = CustomerDto.class),
             @ApiResponse(code = 404, message = "Customer doesn't exist.")
     })
     public ResponseEntity<CustomerDto> getCustomer(@Valid @PathVariable Long customerId) {
-        CustomerDto customerDto = customerService.findOneById(customerId);
-
+        CustomerDto customerDto = customerService.findCustomerById(customerId, false);
         return ResponseEntity.ok(customerDto);
     }
 
@@ -86,7 +84,7 @@ public class CustomerController {
             @ApiResponse(code = 404, message = "Customer doesn't exist.")
     })
     public ResponseEntity<CustomerDto> getCustomerByPhone(@Valid @PathVariable String customerPhoneNumber) {
-        CustomerDto customerDto = customerService.findByPhoneNumber(customerPhoneNumber);
+        CustomerDto customerDto = customerService.findByPhoneNumber(customerPhoneNumber, false);
 
         return ResponseEntity.ok(customerDto);
     }
@@ -110,5 +108,25 @@ public class CustomerController {
     public ResponseEntity<CustomerDto> createCustomer(@Valid @RequestBody CustomerCreateDto customerCreateDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(customerService.saveCustomer(customerCreateDto));
+    }
+
+    /**
+     * The endpoint accepts a DELETE request.
+     *
+     * @param customerId the id of the Customer to delete
+     * @return HTTP status
+     */
+    @DeleteMapping(value = "/{customerId}")
+    @ApiOperation(value = "Delete customer")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Customer successfully deleted."),
+            @ApiResponse(code = 404, message = "Customer is not found."),
+            @ApiResponse(code = 404, message = "Customer is already deleted.")
+    })
+    public ResponseEntity<Void> deleteCustomer(@PathVariable Long customerId) {
+        customerService.deleteCustomer(customerId);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .build();
     }
 }
