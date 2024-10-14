@@ -2,6 +2,8 @@ package com.mss.repository;
 
 import com.mss.model.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -30,7 +32,25 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
      * Find a customer by their phone number.
      *
      * @param phoneNumber the phone number of the customer
+     * @param isDeleted the boolean representing deletion of the customer
+     * @return an Optional containing the customer if found, or empty if not
+     */
+    Optional<Customer> findByPhoneNumberAndDeleted(String phoneNumber,boolean isDeleted);
+
+    /**
+     * Find a customer by their phone number ignores deleted.
+     *
+     * @param phoneNumber the phone number of the customer
      * @return an Optional containing the customer if found, or empty if not
      */
     Optional<Customer> findByPhoneNumber(String phoneNumber);
+
+    /**
+     * Find a customer by their id if they are not soft deleted.
+     *
+     * @param customerId the id of the customer
+     * @return an Optional containing the customer if found, or empty if not
+     */
+    @Query("SELECT c FROM Customer c WHERE c.id = :customerId AND c.deleted = :isDeleted")
+    Optional<Customer> findActiveById(@Param("customerId") Long customerId, @Param("isDeleted") boolean isDeleted);
 }
