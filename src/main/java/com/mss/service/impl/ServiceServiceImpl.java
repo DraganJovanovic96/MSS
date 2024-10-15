@@ -3,13 +3,17 @@ package com.mss.service.impl;
 import com.mss.dto.ServiceCreateDto;
 import com.mss.dto.ServiceDto;
 import com.mss.mapper.ServiceMapper;
+import com.mss.model.Service;
 import com.mss.model.User;
 import com.mss.model.Vehicle;
 import com.mss.repository.ServiceRepository;
 import com.mss.repository.UserRepository;
 import com.mss.repository.VehicleRepository;
 import com.mss.service.ServiceService;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -48,13 +52,29 @@ public class ServiceServiceImpl implements ServiceService {
     private final ServiceMapper serviceMapper;
 
     /**
-     * Retrieves a list of all services.
+     * Created CUSTOMER_FILTER attribute, so we can change Filter easily if needed.
+     */
+    private static final String SERVICE_FILTER = "deletedServiceFilter";
+
+    /**
+     * An EntityManager instance is associated with a persistence context.
+     * A persistence context is a set of entity instances in which for any
+     * persistent entity identity there is a unique entity instance.
+     */
+    private final EntityManager entityManager;
+
+    /**
+     * Retrieves a list of all services that are not deleted.
      *
      * @return A list of ServiceDto objects representing the services.
      */
     @Override
-    public List<ServiceDto> getAllServices() {
-        List<com.mss.model.Service> services = serviceRepository.findAll();
+    public List<ServiceDto> getAllServices(boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+        List<Service> services = serviceRepository.findAll();
+        session.disableFilter(SERVICE_FILTER);
 
         return serviceMapper.serviceToServiceDtos(services);
     }
@@ -85,5 +105,42 @@ public class ServiceServiceImpl implements ServiceService {
         service.setUser(user);
 
         return serviceMapper.serviceToServiceDto(serviceRepository.save(service));
+    }
+
+    /**
+     * @param serviceId the unique identifier of the service to retrieve
+     * @param isDeleted
+     * @return
+     */
+    @Override
+    public ServiceDto findServiceById(Long serviceId, boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+
+        Service service = serviceRepository.findOneById(serviceId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service with this id doesn't exist"));
+
+        session.disableFilter(SERVICE_FILTER);
+
+        return serviceMapper.serviceToServiceDto(service);
+    }
+
+    /**
+     * @param serviceId parameter that is unique to entity
+     */
+    @Override
+    public void deleteService(Long serviceId) {
+        serviceRepository.findById(serviceId)
+                .map(service -> {
+                    if (Boolean.TRUE.equals(service.getDeleted())) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Service is already deleted.");
+                    }
+
+                    return service;
+                })
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service is not found."));
+
+        serviceRepository.deleteById(serviceId);
     }
 }

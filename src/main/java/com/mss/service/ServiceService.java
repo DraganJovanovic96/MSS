@@ -19,7 +19,7 @@ public interface ServiceService {
      *
      * @return a list of all ServicesDtos
      */
-    List<ServiceDto> getAllServices();
+    List<ServiceDto> getAllServices(boolean isDeleted);
 
     /**
      * A method for saving service. It is implemented in ServiceServiceImpl class.
@@ -28,4 +28,19 @@ public interface ServiceService {
      * @return the newly created ServiceDto
      */
     ServiceDto saveService(ServiceCreateDto serviceCreateDto);
+
+    /**
+     * Finds a service by their unique identifier.
+     *
+     * @param serviceId the unique identifier of the service to retrieve
+     * @return a {@link ServiceDto} representing the found service
+     */
+    ServiceDto findServiceById(Long serviceId, boolean isDeleted);
+
+    /**
+     * A method for deleting service. It is implemented in ServiceServiceImpl class.
+     *
+     * @param serviceId parameter that is unique to entity
+     */
+    void deleteService(Long serviceId);
 }

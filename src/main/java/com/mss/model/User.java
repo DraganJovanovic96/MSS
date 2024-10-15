@@ -104,7 +104,7 @@ public class User extends BaseEntity<Long> implements UserDetails {
     /**
      * The services associated with the user.
      */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user")
     private List<Service> services = new ArrayList<>();
 
     @Override
