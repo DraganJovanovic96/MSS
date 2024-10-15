@@ -1,6 +1,5 @@
 package com.mss.service.impl;
 
-import com.mss.dto.CustomerDto;
 import com.mss.dto.ServiceTypeCreateDto;
 import com.mss.dto.ServiceTypeDto;
 import com.mss.mapper.ServiceTypeMapper;
@@ -46,7 +45,7 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
     private final ServiceTypeMapper serviceTypeMapper;
 
     /**
-     * Created CUSTOMER_FILTER attribute, so we can change Filter easily if needed.
+     * Created SERVICE_TYPE_FILTER attribute, so we can change Filter easily if needed.
      */
     private static final String SERVICE_TYPE_FILTER = "deletedServiceTypeFilter";
 
@@ -98,7 +97,7 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
      *
      * @param serviceTypeId used to find Service Type by id
      * @param isDeleted     used to check if object is softly deleted
-     * @return {@link CustomerDto} which contains info about specific service type
+     * @return {@link ServiceTypeDto} which contains info about specific service type
      */
     @Override
     public ServiceTypeDto findServiceTypeById(Long serviceTypeId, boolean isDeleted) {
@@ -122,12 +121,12 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
     @Override
     public void deleteServiceType(Long serviceTypeId) {
         serviceTypeRepository.findById(serviceTypeId)
-                .map(customer -> {
-                    if (Boolean.TRUE.equals(customer.getDeleted())) {
+                .map(service -> {
+                    if (Boolean.TRUE.equals(service.getDeleted())) {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Service Type is already deleted.");
                     }
 
-                    return customer;
+                    return service;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service Type is not found."));
 

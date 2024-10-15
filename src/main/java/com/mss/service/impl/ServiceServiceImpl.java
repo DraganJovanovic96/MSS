@@ -52,7 +52,7 @@ public class ServiceServiceImpl implements ServiceService {
     private final ServiceMapper serviceMapper;
 
     /**
-     * Created CUSTOMER_FILTER attribute, so we can change Filter easily if needed.
+     * Created SERVICE_FILTER attribute, so we can change Filter easily if needed.
      */
     private static final String SERVICE_FILTER = "deletedServiceFilter";
 

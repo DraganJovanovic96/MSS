@@ -46,7 +46,7 @@ public class VehicleServiceImpl implements VehicleService {
     private final VehicleMapper vehicleMapper;
 
     /**
-     * Created CUSTOMER_FILTER attribute, so we can change Filter easily if needed.
+     * Created VEHICLE_FILTER attribute, so we can change Filter easily if needed.
      */
     private static final String VEHICLE_FILTER = "deletedVehicleFilter";
 
@@ -75,7 +75,7 @@ public class VehicleServiceImpl implements VehicleService {
 
     /**
      * A method for retrieving Vehicle entity from the database using id.
-     * In case that customer doesn't exist we get ResponseStatusException.NOT_FOUND.
+     * In case that vehicle doesn't exist we get ResponseStatusException.NOT_FOUND.
      *
      * @param vehicleId used to find Vehicle by id
      * @param isDeleted  used to check if object is softly deleted
