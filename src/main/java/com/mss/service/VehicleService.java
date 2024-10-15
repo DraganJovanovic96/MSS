@@ -18,6 +18,7 @@ public interface VehicleService {
     /**
      * A method for retrieving all vehicles implemented in VehicleServiceImpl class.
      *
+     * @param isDeleted parameter that checks if object is soft deleted
      * @return a list of all VehicleDtos
      */
     List<VehicleDto> getAllVehicles(boolean isDeleted);

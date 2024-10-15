@@ -117,6 +117,7 @@ public class CustomerController {
      * @return HTTP status
      */
     @DeleteMapping(value = "/{customerId}")
+    @PreAuthorize("hasAnyAuthority('admin:create', 'user:create')")
     @ApiOperation(value = "Delete customer")
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "Customer successfully deleted."),
