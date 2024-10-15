@@ -46,7 +46,7 @@ public class ServiceController {
     @ApiOperation(value = "Get all services")
     @ApiResponse(code = 200, message = "Service data successfully fetched.")
     public ResponseEntity<List<ServiceDto>> getAllServices() {
-        return ResponseEntity.status(HttpStatus.OK).body(serviceService.getAllServices());
+        return ResponseEntity.status(HttpStatus.OK).body(serviceService.getAllServices(false));
     }
 
     /**
@@ -70,4 +70,42 @@ public class ServiceController {
                 .body(serviceService.saveService(serviceCreateDto));
     }
 
+    /**
+     * The endpoint accepts a GET request.
+     * Retrieves the service data for a given service id that is received through path variable.
+     *
+     * @param serviceId the id of the service to retrieve
+     * @return ResponseEntity<ServiceDto> containing the service data for the specified id.
+     */
+    @GetMapping(value = "/{serviceId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Get Service's data")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Service's data successfully fetched.", response = ServiceDto.class),
+            @ApiResponse(code = 404, message = "Service doesn't exist.")
+    })
+    public ResponseEntity<ServiceDto> getService(@Valid @PathVariable Long serviceId) {
+        ServiceDto serviceDto = serviceService.findServiceById(serviceId, false);
+        return ResponseEntity.ok(serviceDto);
+    }
+
+    /**
+     * The endpoint accepts a DELETE request.
+     *
+     * @param serviceId the id of the Service to delete
+     * @return HTTP status
+     */
+    @DeleteMapping(value = "/{serviceId}")
+    @ApiOperation(value = "Delete service")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Service successfully deleted."),
+            @ApiResponse(code = 404, message = "Service is not found."),
+            @ApiResponse(code = 404, message = "Service is already deleted.")
+    })
+    public ResponseEntity<Void> deleteService(@PathVariable Long serviceId) {
+        serviceService.deleteService(serviceId);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .build();
+
+    }
 }
