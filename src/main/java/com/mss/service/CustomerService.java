@@ -42,10 +42,10 @@ public interface CustomerService {
     /**
      * Finds a customer by their unique identifier.
      *
-     * @param skillId the unique identifier of the customer to retrieve
+     * @param customerId the unique identifier of the customer to retrieve
      * @return a {@link CustomerDto} representing the found customer
      */
-    CustomerDto findCustomerById(Long skillId, boolean isDeleted);
+    CustomerDto findCustomerById(Long customerId, boolean isDeleted);
 
     /**
      * Finds a customer by their phone number.

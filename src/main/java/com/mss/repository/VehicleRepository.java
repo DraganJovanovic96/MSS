@@ -24,4 +24,12 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
      */
     Optional<Vehicle> findByVin(String vin);
 
+    /**
+     * Find a vehicle by their id.
+     *
+     * @param vehicleId the id of the vehicle
+     * @return an Optional containing the vehicle if found, or empty if not
+     */
+    Optional<Vehicle> findOneById(Long vehicleId);
+
 }

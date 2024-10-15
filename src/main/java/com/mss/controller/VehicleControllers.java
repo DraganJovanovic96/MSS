@@ -38,7 +38,7 @@ public class VehicleControllers {
 
     /**
      * The endpoint accepts a GET request.
-     * Retrieves all vehicle data.
+     * Retrieves all vehicle data which are not deleted.
      *
      * @return ResponseEntity {@link VehicleDto}  containing the vehicles' data.
      */
@@ -48,7 +48,7 @@ public class VehicleControllers {
     @ApiResponse(code = 200, message = "Vehicles data successfully fetched.")
     public ResponseEntity<List<VehicleDto>> getVehicles() {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(vehicleService.getAllVehicles());
+                .body(vehicleService.getAllVehicles(false));
     }
 
     /**
@@ -70,5 +70,43 @@ public class VehicleControllers {
     public ResponseEntity<VehicleDto> createVehicle(@Valid @RequestBody VehicleCreateDto vehicleCreateDto) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(vehicleService.saveVehicle(vehicleCreateDto));
+    }
+
+    /**
+     * The endpoint accepts a GET request.
+     * Retrieves the vehicles data for a given vehicle id that is received through path variable.
+     *
+     * @param vehicleId the id of the vehicle to retrieve
+     * @return ResponseEntity<VehicleDto> containing the vehicle data for the specified id.
+     */
+    @GetMapping(value = "/{vehicleId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ApiOperation(value = "Get Vehicle's data")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Vehicle's data successfully fetched.", response = VehicleDto.class),
+            @ApiResponse(code = 404, message = "Vehicle doesn't exist.")
+    })
+    public ResponseEntity<VehicleDto> getVehicle(@Valid @PathVariable Long vehicleId) {
+        VehicleDto vehicleDto = vehicleService.findVehicleById(vehicleId, false);
+        return ResponseEntity.ok(vehicleDto);
+    }
+
+    /**
+     * The endpoint accepts a DELETE request.
+     *
+     * @param vehicleId the id of the Vehicle to delete
+     * @return HTTP status
+     */
+    @DeleteMapping(value = "/{vehicleId}")
+    @ApiOperation(value = "Delete Vehicle")
+    @ApiResponses(value = {
+            @ApiResponse(code = 204, message = "Vehicle successfully deleted."),
+            @ApiResponse(code = 404, message = "Vehicle is not found."),
+            @ApiResponse(code = 404, message = "Vehicle is already deleted.")
+    })
+    public ResponseEntity<Void> deleteVehicle(@PathVariable Long vehicleId) {
+        vehicleService.deleteVehicle(vehicleId);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                .build();
     }
 }

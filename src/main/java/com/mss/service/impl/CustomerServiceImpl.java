@@ -64,7 +64,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     /**
-     * Retrieves a list of all customers.
+     * Retrieves a list of all customers which are not deleted.
      *
      * @return A list of CustomerDto objects representing the customers.
      */
@@ -102,14 +102,6 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     /**
-     * Finds a customer by their id.
-     *
-     * @param customerId the unique identifier of the customer to retrieve
-     * @return a {@link CustomerDto} representing the found customer
-     * @throws ResponseStatusException if no customer is found with the given id,
-     *                                 it throws a 404 NOT FOUND response with an appropriate message
-     */
-    /**
      * A method for retrieving Customer entity from the database using id.
      * In case that customer doesn't exist we get ResponseStatusException.NOT_FOUND.
      *
@@ -119,9 +111,14 @@ public class CustomerServiceImpl implements CustomerService {
      */
     @Override
     public CustomerDto findCustomerById(Long customerId, boolean isDeleted) {
-        Customer customer = customerRepository.findActiveById(customerId, isDeleted)
-                .orElseThrow(() -> new ResponseStatusException
-                        (HttpStatus.NOT_FOUND, "Customer with this id doesn't exist"));
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(CUSTOMER_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+
+        Customer customer = customerRepository.findOneById(customerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer with this id doesn't exist"));
+
+        session.disableFilter(CUSTOMER_FILTER);
 
         return customerMapper.customerToCustomerDto(customer);
     }
