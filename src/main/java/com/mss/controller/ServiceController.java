@@ -78,6 +78,7 @@ public class ServiceController {
      * @return ResponseEntity<ServiceDto> containing the service data for the specified id.
      */
     @GetMapping(value = "/{serviceId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:create', 'user:create')")
     @ApiOperation(value = "Get Service's data")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Service's data successfully fetched.", response = ServiceDto.class),
@@ -95,6 +96,7 @@ public class ServiceController {
      * @return HTTP status
      */
     @DeleteMapping(value = "/{serviceId}")
+    @PreAuthorize("hasAnyAuthority('admin:create', 'user:create')")
     @ApiOperation(value = "Delete service")
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "Service successfully deleted."),

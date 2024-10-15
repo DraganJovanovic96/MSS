@@ -17,6 +17,7 @@ public interface ServiceService {
     /**
      * A method for retrieving all services implemented in ServiceServiceImpl class.
      *
+     * @param isDeleted parameter that checks if object is soft deleted
      * @return a list of all ServicesDtos
      */
     List<ServiceDto> getAllServices(boolean isDeleted);

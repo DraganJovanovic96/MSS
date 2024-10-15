@@ -17,9 +17,10 @@ public interface ServiceTypeService {
     /**
      * A method for retrieving all Service types implemented in ServiceTypeServiceImpl class.
      *
+     * @param isDeleted parameter that checks if object is soft deleted
      * @return a list of all ServiceTypeDtos
      */
-    List<ServiceTypeDto> getAllServiceTypes();
+    List<ServiceTypeDto> getAllServiceTypes(boolean isDeleted);
 
     /**
      * A method for saving service type. It is implemented in ServiceTypeServiceImpl class.
@@ -29,4 +30,18 @@ public interface ServiceTypeService {
      */
     ServiceTypeDto saveServiceType(ServiceTypeCreateDto serviceTypeCreateDto);
 
+    /**
+     * Finds a service type by their unique identifier.
+     *
+     * @param serviceTypeId the unique identifier of the service type to retrieve
+     * @return a {@link ServiceTypeDto} representing the found  service type
+     */
+    ServiceTypeDto findServiceTypeById(Long serviceTypeId, boolean isDeleted);
+
+    /**
+     * A method for deleting service type. It is implemented in ServiceTypeServiceImpl class.
+     *
+     * @param serviceTypeId parameter that is unique to entity
+     */
+    void deleteServiceType(Long serviceTypeId);
 }
