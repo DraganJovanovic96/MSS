@@ -78,7 +78,7 @@ public class VehicleServiceImpl implements VehicleService {
      * In case that vehicle doesn't exist we get ResponseStatusException.NOT_FOUND.
      *
      * @param vehicleId used to find Vehicle by id
-     * @param isDeleted  used to check if object is softly deleted
+     * @param isDeleted used to check if object is softly deleted
      * @return {@link VehicleDto} which contains info about specific vehicle
      */
     @Override
@@ -116,8 +116,15 @@ public class VehicleServiceImpl implements VehicleService {
                     }
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Vehicle with that vin already exists.");
                 });
-        Customer customer = customerRepository.findById(vehicleCreateDto.getCustomerId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer with that id doesn't exist"));
+
+        Customer customer = customerRepository.findOneById(vehicleCreateDto.getCustomerId())
+                .map(customerPresent -> {
+                    if (customerPresent.getDeleted()) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT, "Customer with that id already exists and is deleted, check your deleted resources.");
+                    }
+                    return customerPresent;
+                })
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer doesn't exist"));
 
         Vehicle vehicle = vehicleMapper.vehicleCreateDtoToVehicle(vehicleCreateDto);
         vehicle.setCustomer(customer);

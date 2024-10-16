@@ -80,7 +80,7 @@ public class VehicleControllers {
      * @return ResponseEntity<VehicleDto> containing the vehicle data for the specified id.
      */
     @GetMapping(value = "/{vehicleId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyAuthority('admin:create', 'user:create')")
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
     @ApiOperation(value = "Get Vehicle's data")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Vehicle's data successfully fetched.", response = VehicleDto.class),
@@ -98,7 +98,7 @@ public class VehicleControllers {
      * @return HTTP status
      */
     @DeleteMapping(value = "/{vehicleId}")
-    @PreAuthorize("hasAnyAuthority('admin:create', 'user:create')")
+    @PreAuthorize("hasAnyAuthority('admin:delete', 'user:delete')")
     @ApiOperation(value = "Delete Vehicle")
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "Vehicle successfully deleted."),

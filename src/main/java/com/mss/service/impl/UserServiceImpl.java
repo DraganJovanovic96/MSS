@@ -1,8 +1,11 @@
 package com.mss.service.impl;
 
+import com.mss.enumeration.Role;
 import com.mss.model.User;
+import com.mss.repository.TokenRepository;
 import com.mss.repository.UserRepository;
 import com.mss.service.UserService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -27,6 +30,11 @@ public class UserServiceImpl implements UserService {
      * The repository used to retrieve user data.
      */
     private final UserRepository userRepository;
+
+    /**
+     * The repository used to retrieve token data.
+     */
+    private final TokenRepository tokenRepository;
 
     /**
      * Retrieves a user entity by their email address.
@@ -57,5 +65,38 @@ public class UserServiceImpl implements UserService {
         } else {
             throw new RuntimeException("Authentication object does not contain user details");
         }
+    }
+
+    /**
+     * A method for performing soft delete of User entity. It is implemented in UserController class.
+     *
+     * @param userId parameter that is unique to entity
+     */
+    @Override
+    @Transactional
+    public void deleteUser(Long userId) {
+        userRepository.findById(userId)
+                .map(user -> {
+                    if (Boolean.TRUE.equals(user.getDeleted())) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User is already deleted.");
+                    }
+
+                    if (user.getRole() == Role.ADMIN) {
+                        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin cannot be deleted");
+                    }
+
+                    user.setRole(null);
+                    user.getTokens().forEach(token -> {
+                        tokenRepository.permanentlyDeleteTokenById(token.getId());
+                    });
+
+                    userRepository.save(user);
+                    userRepository.flush();
+
+                    return user;
+                })
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User is not found."));
+
+        userRepository.deleteById(userId);
     }
 }

@@ -42,6 +42,7 @@ public class CustomerController {
      * list of CustomerDto objects as the response body
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
     @ApiOperation(value = "Get customers' data")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Customers' data successfully fetched.", response = CustomerDto.class)
@@ -59,6 +60,7 @@ public class CustomerController {
      * @return ResponseEntity<CustomerDto> containing the customer data for the specified id.
      */
     @GetMapping(value = "/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
     @ApiOperation(value = "Get Customer's data")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Customer's data successfully fetched.", response = CustomerDto.class),
@@ -117,7 +119,7 @@ public class CustomerController {
      * @return HTTP status
      */
     @DeleteMapping(value = "/{customerId}")
-    @PreAuthorize("hasAnyAuthority('admin:create', 'user:create')")
+    @PreAuthorize("hasAnyAuthority('admin:delete', 'user:delete')")
     @ApiOperation(value = "Delete customer")
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "Customer successfully deleted."),
