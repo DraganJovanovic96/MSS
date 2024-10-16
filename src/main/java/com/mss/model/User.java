@@ -129,7 +129,7 @@ public class User extends BaseEntity<Long> implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return Boolean.FALSE.equals(getDeleted());
     }
 
     @Override
