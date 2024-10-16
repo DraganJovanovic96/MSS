@@ -96,16 +96,18 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     /**
-     * Saves a new vehicle based on the provided VehicleCreateDto.
+     * Saves a new vehicle based on the provided {@link VehicleCreateDto}.
+     * Checks if a vehicle with the same VIN already exists. Throws a conflict
+     * exception if it does, and if it's deleted, prompts to check deleted resources.
      * <p>
-     * This method retrieves the customer associated with the provided customer ID from the VehicleCreateDto.
-     * If the customer exists, the vehicle is mapped from the DTO, associated with the customer,
-     * and then saved to the repository. The saved vehicle is then converted to a VehicleDto and returned.
-     * If the customer is not found, a ResponseStatusException is thrown with a 404 status code.
+     * Validates the customer ID from the DTO. Throws a not found exception if the
+     * customer doesn't exist or a conflict if it's deleted.
+     * <p>
+     * Maps and saves the vehicle, then returns a {@link VehicleDto}.
      *
-     * @param vehicleCreateDto the data transfer object containing vehicle information to be saved.
-     * @return the VehicleDto representing the saved vehicle.
-     * @throws ResponseStatusException if the customer with the provided ID does not exist.
+     * @param vehicleCreateDto the DTO containing vehicle details
+     * @return the saved {@link VehicleDto}
+     * @throws ResponseStatusException if VIN or customer conflicts occur
      */
     @Override
     public VehicleDto saveVehicle(VehicleCreateDto vehicleCreateDto) {
