@@ -29,4 +29,11 @@ public interface UserService {
      * @return The User object representing the authenticated user.
      */
     User getUserFromAuthentication();
+
+    /**
+     * A method for deleting user. It is implemented in UserServiceImpl class.
+     *
+     * @param userId parameter that is unique to entity
+     */
+    void deleteUser(Long userId);
 }

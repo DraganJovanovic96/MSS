@@ -1,7 +1,6 @@
 package com.mss.repository;
 
 
-
 import com.mss.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -25,4 +24,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     Optional<User> findByEmail(String email);
 
+    /**
+     * Find a user by their id.
+     *
+     * @param userId the id of the user
+     * @return an Optional containing the user if found, or empty if not
+     */
+    Optional<User> findOneById(Long userId);
 }

@@ -52,7 +52,7 @@ public class ServiceServiceImpl implements ServiceService {
     private final ServiceMapper serviceMapper;
 
     /**
-     * Created CUSTOMER_FILTER attribute, so we can change Filter easily if needed.
+     * Created SERVICE_FILTER attribute, so we can change Filter easily if needed.
      */
     private static final String SERVICE_FILTER = "deletedServiceFilter";
 
@@ -94,23 +94,36 @@ public class ServiceServiceImpl implements ServiceService {
      */
     @Override
     public ServiceDto saveService(ServiceCreateDto serviceCreateDto) {
-        User user = userRepository.findById(serviceCreateDto.getUserId())
+        User user = userRepository.findOneById(serviceCreateDto.getUserId())
+                .map(userPresent -> {
+                    if (userPresent.getDeleted()) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT, "User with that id already exists and is deleted, check your deleted resources.");
+                    }
+                    return userPresent;
+                })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User doesn't exist"));
 
-        Vehicle vehicle = vehicleRepository.findById(serviceCreateDto.getVehicleId())
+        Vehicle vehicle = vehicleRepository.findOneById(serviceCreateDto.getVehicleId())
+                .map(vehiclePresent -> {
+                    if (vehiclePresent.getDeleted()) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT, "Vehicle with that id already exists and is deleted, check your deleted resources.");
+                    }
+                    return vehiclePresent;
+                })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle doesn't exist"));
 
-        com.mss.model.Service service = serviceMapper.serviceCreateDtoToService(serviceCreateDto);
+        Service service = serviceMapper.serviceCreateDtoToService(serviceCreateDto);
         service.setVehicle(vehicle);
         service.setUser(user);
+        vehicleRepository.save(vehicle);
 
         return serviceMapper.serviceToServiceDto(serviceRepository.save(service));
     }
 
     /**
      * @param serviceId the unique identifier of the service to retrieve
-     * @param isDeleted
-     * @return
+     * @param isDeleted boolean that represents if service is deleted or now
+     * @return ServiceDto that contains service data
      */
     @Override
     public ServiceDto findServiceById(Long serviceId, boolean isDeleted) {

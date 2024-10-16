@@ -1,9 +1,9 @@
 package com.mss.service.impl;
 
-import com.mss.dto.CustomerDto;
 import com.mss.dto.ServiceTypeCreateDto;
 import com.mss.dto.ServiceTypeDto;
 import com.mss.mapper.ServiceTypeMapper;
+import com.mss.model.Service;
 import com.mss.model.ServiceType;
 import com.mss.repository.ServiceRepository;
 import com.mss.repository.ServiceTypeRepository;
@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
 import org.hibernate.Session;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -27,7 +26,7 @@ import java.util.List;
  * @version 1.0
  * @since 1.0
  */
-@Service
+@org.springframework.stereotype.Service
 @RequiredArgsConstructor
 public class ServiceTypeServiceImpl implements ServiceTypeService {
     /**
@@ -46,7 +45,7 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
     private final ServiceTypeMapper serviceTypeMapper;
 
     /**
-     * Created CUSTOMER_FILTER attribute, so we can change Filter easily if needed.
+     * Created SERVICE_TYPE_FILTER attribute, so we can change Filter easily if needed.
      */
     private static final String SERVICE_TYPE_FILTER = "deletedServiceTypeFilter";
 
@@ -82,8 +81,14 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
      */
     @Override
     public ServiceTypeDto saveServiceType(ServiceTypeCreateDto serviceTypeCreateDto) {
-        com.mss.model.Service service = serviceRepository.findById(serviceTypeCreateDto.getServiceId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service is not found"));
+        Service service = serviceRepository.findOneById(serviceTypeCreateDto.getServiceId())
+                .map(servicePresent -> {
+                    if (servicePresent.getDeleted()) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT, "Service with that id already exists and is deleted, check your deleted resources.");
+                    }
+                    return servicePresent;
+                })
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service doesn't exist"));
 
         ServiceType serviceType = serviceTypeMapper.serviceTypeCreateDtoToServiceType(serviceTypeCreateDto);
         serviceType.setService(service);
@@ -98,7 +103,7 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
      *
      * @param serviceTypeId used to find Service Type by id
      * @param isDeleted     used to check if object is softly deleted
-     * @return {@link CustomerDto} which contains info about specific service type
+     * @return {@link ServiceTypeDto} which contains info about specific service type
      */
     @Override
     public ServiceTypeDto findServiceTypeById(Long serviceTypeId, boolean isDeleted) {
@@ -122,12 +127,12 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
     @Override
     public void deleteServiceType(Long serviceTypeId) {
         serviceTypeRepository.findById(serviceTypeId)
-                .map(customer -> {
-                    if (Boolean.TRUE.equals(customer.getDeleted())) {
+                .map(service -> {
+                    if (Boolean.TRUE.equals(service.getDeleted())) {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Service Type is already deleted.");
                     }
 
-                    return customer;
+                    return service;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service Type is not found."));
 
