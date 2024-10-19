@@ -33,7 +33,7 @@ public class ServiceType extends BaseEntity<Long> {
      * The price of service provided.
      */
     @Column
-    private int price;
+    private double price;
 
     /**
      * The user who performed the service.

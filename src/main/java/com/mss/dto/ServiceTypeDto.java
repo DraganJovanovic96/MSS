@@ -25,5 +25,5 @@ public class ServiceTypeDto extends BaseEntityDto {
     /**
      * The price of service provided.
      */
-    private int price;
+    private double price;
 }

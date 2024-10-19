@@ -7,8 +7,9 @@
  * The classes in this package should follow the naming convention of suffixing the class name with "Controller", e.g.
  * "UserController". They should also be annotated with the appropriate Spring annotations such
  * as @RestController or @Controller, and @RequestMapping or @GetMapping, depending on the HTTP method used.
- * @since 1.0
+ *
  * @author Dragan Jovanovic
  * @version 1.0
+ * @since 1.0
  */
 package com.mss.controller;

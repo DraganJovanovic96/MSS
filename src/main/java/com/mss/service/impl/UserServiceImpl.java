@@ -86,7 +86,7 @@ public class UserServiceImpl implements UserService {
                     }
 
                     user.setRole(null);
-                    user.setEmail("DELETED"+user.getEmail());
+                    user.setEmail("DELETED" + user.getEmail());
                     user.getTokens().forEach(token -> {
                         tokenRepository.permanentlyDeleteTokenById(token.getId());
                     });
