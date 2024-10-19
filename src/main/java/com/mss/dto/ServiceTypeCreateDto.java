@@ -26,7 +26,7 @@ public class ServiceTypeCreateDto extends BaseEntityDto {
     /**
      * The price of service provided.
      */
-    private float price;
+    private double price;
 
     /**
      * Id of service connected to service type.
