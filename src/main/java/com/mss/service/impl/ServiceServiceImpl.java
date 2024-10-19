@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The ServiceServiceImpl implements ServiceService and
@@ -115,6 +116,7 @@ public class ServiceServiceImpl implements ServiceService {
         Service service = serviceMapper.serviceCreateDtoToService(serviceCreateDto);
         service.setVehicle(vehicle);
         service.setUser(user);
+        service.setInvoiceCode(UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         vehicleRepository.save(vehicle);
 
         return serviceMapper.serviceToServiceDto(serviceRepository.save(service));

@@ -19,6 +19,12 @@ import java.util.List;
 @Filter(name = "deletedServiceFilter", condition = "deleted = :isDeleted")
 public class Service extends BaseEntity<Long> {
     /**
+     * The invoice code for the service.
+     */
+    @Column(unique = true, nullable = false)
+    private String invoiceCode;
+
+    /**
      * The start date of the service.
      */
     @Column

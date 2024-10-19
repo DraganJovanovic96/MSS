@@ -17,6 +17,11 @@ import java.util.List;
 @Data
 public class ServiceDto extends BaseEntityDto {
     /**
+     * The invoice code for the service.
+     */
+    private String invoiceCode;
+
+    /**
      * The start date of the service.
      */
     private LocalDate startDate;
