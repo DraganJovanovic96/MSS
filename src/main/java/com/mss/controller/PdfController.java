@@ -40,7 +40,7 @@ public class PdfController {
      * @param serviceId the ID of the service for which the invoice is generated
      * @return a ResponseEntity containing the generated PDF as a byte array
      */
-    @GetMapping(value = "/{serviceId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/id/{serviceId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
     @ApiOperation(value = "Get Service invoice")
     @ApiResponses(value = {

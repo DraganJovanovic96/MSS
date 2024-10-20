@@ -59,7 +59,7 @@ public class CustomerController {
      * @param customerId the id of the customer to retrieve
      * @return ResponseEntity<CustomerDto> containing the customer data for the specified id.
      */
-    @GetMapping(value = "/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/id/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
     @ApiOperation(value = "Get Customer's data")
     @ApiResponses(value = {

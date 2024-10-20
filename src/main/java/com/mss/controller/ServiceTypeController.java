@@ -77,7 +77,7 @@ public class ServiceTypeController {
      * @param serviceTypeId the id of the service type to retrieve
      * @return ResponseEntity<ServiceTypeDto> containing the service type data for the specified id.
      */
-    @GetMapping(value = "/{serviceTypeId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/id/{serviceTypeId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
     @ApiOperation(value = "Get Service Type's data")
     @ApiResponses(value = {
