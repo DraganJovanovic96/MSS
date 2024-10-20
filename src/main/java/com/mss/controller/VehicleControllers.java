@@ -79,7 +79,7 @@ public class VehicleControllers {
      * @param vehicleId the id of the vehicle to retrieve
      * @return ResponseEntity<VehicleDto> containing the vehicle data for the specified id.
      */
-    @GetMapping(value = "/{vehicleId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/id/{vehicleId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
     @ApiOperation(value = "Get Vehicle's data")
     @ApiResponses(value = {

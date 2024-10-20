@@ -2,12 +2,14 @@ package com.mss.controller;
 
 import com.mss.dto.ServiceCreateDto;
 import com.mss.dto.ServiceDto;
+import com.mss.dto.ServiceFiltersQueryDto;
 import com.mss.service.ServiceService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -77,7 +79,7 @@ public class ServiceController {
      * @param serviceId the id of the service to retrieve
      * @return ResponseEntity<ServiceDto> containing the service data for the specified id.
      */
-    @GetMapping(value = "/{serviceId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/id/{serviceId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
     @ApiOperation(value = "Get Service's data")
     @ApiResponses(value = {
@@ -109,5 +111,28 @@ public class ServiceController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .build();
 
+    }
+
+    /**
+     * The getServices method is a REST endpoint that returns a ResponseEntity containing a List of ServiceDto.
+     * This method accepts an optional serviceFiltersQueryDto object as a request body, which contains the query attributes for filtering Service entities.
+     * It also accepts an optional pageNo parameter as a query parameter, which specifies the page number to retrieve, and numberOfResultsPerPage
+     * which specifies number of results per page.
+     *
+     * @param serviceFiltersQueryDto contains parameters based on data will be filtered
+     * @param page                   number of wanted page
+     * @param pageSize               number of wanted results per page
+     * @return ResponseEntity<List> - The HTTP response containing a list of {@link ServiceDto} objects as the response body
+     */
+    @PostMapping("/search")
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
+    @ApiOperation(value = "Get all/filtered services")
+    @ApiResponse(code = 200, message = "Requests data successfully fetched.")
+    public ResponseEntity<List<ServiceDto>> getServices(@RequestBody(required = false) ServiceFiltersQueryDto serviceFiltersQueryDto,
+                                                        @RequestParam(value = "page", defaultValue = "0") int page,
+                                                        @RequestParam(value = "pageSize", defaultValue = "5") int pageSize) {
+        Page<ServiceDto> resultPage = serviceService.findFilteredServices(false, serviceFiltersQueryDto, page, pageSize);
+
+        return new ResponseEntity<>(resultPage.getContent(), HttpStatus.OK);
     }
 }
