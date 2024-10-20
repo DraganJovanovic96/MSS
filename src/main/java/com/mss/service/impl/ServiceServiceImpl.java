@@ -2,10 +2,14 @@ package com.mss.service.impl;
 
 import com.mss.dto.ServiceCreateDto;
 import com.mss.dto.ServiceDto;
+import com.mss.dto.ServiceFiltersQueryDto;
 import com.mss.mapper.ServiceMapper;
+import com.mss.mapper.UserMapper;
+import com.mss.mapper.VehicleMapper;
 import com.mss.model.Service;
 import com.mss.model.User;
 import com.mss.model.Vehicle;
+import com.mss.repository.ServiceCustomRepository;
 import com.mss.repository.ServiceRepository;
 import com.mss.repository.UserRepository;
 import com.mss.repository.VehicleRepository;
@@ -14,6 +18,9 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
 import org.hibernate.Session;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -38,6 +45,11 @@ public class ServiceServiceImpl implements ServiceService {
     private final ServiceRepository serviceRepository;
 
     /**
+     * The custom repository used to retrieve service data.
+     */
+    private final ServiceCustomRepository serviceCustomRepository;
+
+    /**
      * The repository used to retrieve user data.
      */
     private final UserRepository userRepository;
@@ -51,6 +63,16 @@ public class ServiceServiceImpl implements ServiceService {
      * The mapper used to convert service data between ServiceDto and Service entities.
      */
     private final ServiceMapper serviceMapper;
+
+    /**
+     * The mapper used to convert service data between ServiceDto and Service entities.
+     */
+    private final UserMapper userMapper;
+
+    /**
+     * The mapper used to convert service data between ServiceDto and Service entities.
+     */
+    private final VehicleMapper vehicleMapper;
 
     /**
      * Created SERVICE_FILTER attribute, so we can change Filter easily if needed.
@@ -157,5 +179,27 @@ public class ServiceServiceImpl implements ServiceService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service is not found."));
 
         serviceRepository.deleteById(serviceId);
+    }
+
+    /**
+     * @param serviceFiltersQueryDto {@link ServiceFiltersQueryDto} object which contains query parameters
+     * @param page                   int number of wanted page
+     * @param pageSize               number of results per page
+     * @return
+     */
+    @Override
+    public Page<ServiceDto> findFilteredServices(boolean isDeleted, ServiceFiltersQueryDto serviceFiltersQueryDto, Integer page, Integer pageSize) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+
+        Page<Service> resultPage = serviceCustomRepository.findFilteredServices(serviceFiltersQueryDto, PageRequest.of(page, pageSize));
+        List<Service> services = resultPage.getContent();
+
+        session.disableFilter(SERVICE_FILTER);
+
+        List<ServiceDto> serviceDtos = serviceMapper.serviceToServiceDtos(services);
+
+        return new PageImpl<>(serviceDtos, resultPage.getPageable(), serviceDtos.size());
     }
 }
