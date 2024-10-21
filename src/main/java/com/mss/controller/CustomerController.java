@@ -2,12 +2,14 @@ package com.mss.controller;
 
 import com.mss.dto.CustomerCreateDto;
 import com.mss.dto.CustomerDto;
+import com.mss.dto.CustomerFiltersQueryDto;
 import com.mss.service.CustomerService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -131,5 +133,28 @@ public class CustomerController {
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .build();
+    }
+
+    /**
+     * The getCustomers method is a REST endpoint that returns a ResponseEntity containing a List of CustomerDto.
+     * This method accepts an optional customerFiltersQueryDto object as a request body, which contains the query attributes for filtering Customer entities.
+     * It also accepts an optional pageNo parameter as a query parameter, which specifies the page number to retrieve, and numberOfResultsPerPage
+     * which specifies number of results per page.
+     *
+     * @param customerFiltersQueryDto contains parameters based on data will be filtered
+     * @param page                    number of wanted page
+     * @param pageSize                number of wanted results per page
+     * @return ResponseEntity<List> - The HTTP response containing a list of {@link CustomerDto} objects as the response body
+     */
+    @PostMapping("/search")
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
+    @ApiOperation(value = "Get all/filtered customers")
+    @ApiResponse(code = 200, message = "Requests data successfully fetched.")
+    public ResponseEntity<List<CustomerDto>> getCustomers(@RequestBody(required = false) CustomerFiltersQueryDto customerFiltersQueryDto,
+                                                          @RequestParam(value = "page", defaultValue = "0") int page,
+                                                          @RequestParam(value = "pageSize", defaultValue = "5") int pageSize) {
+        Page<CustomerDto> resultPage = customerService.findFilteredCustomers(false, customerFiltersQueryDto, page, pageSize);
+
+        return new ResponseEntity<>(resultPage.getContent(), HttpStatus.OK);
     }
 }
