@@ -28,6 +28,18 @@ public class ServiceCustomRepository {
      */
     private final EntityManager entityManager;
 
+    /**
+     * Retrieves a paginated list of services based on the provided filters.
+     * The method constructs a dynamic query using the criteria API to filter services
+     * by invoice code, start date, end date, vehicle IDs, and user IDs.
+     *
+     * @param filters  the {@link ServiceFiltersQueryDto} containing the filter criteria
+     *                 for services. If any field is null, it will be ignored in the query.
+     * @param pageable the {@link Pageable} object containing pagination information such as
+     *                 page number and page size.
+     * @return a {@link Page} of {@link Service} objects that match the filter criteria.
+     * The page contains the list of services, pagination details, and total number of rows.
+     */
     public Page<Service> findFilteredServices(ServiceFiltersQueryDto filters, Pageable pageable) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery cq = cb.createQuery();

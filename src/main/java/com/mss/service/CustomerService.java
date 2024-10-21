@@ -2,6 +2,8 @@ package com.mss.service;
 
 import com.mss.dto.CustomerCreateDto;
 import com.mss.dto.CustomerDto;
+import com.mss.dto.CustomerFiltersQueryDto;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -61,4 +63,18 @@ public interface CustomerService {
      * @param customerId parameter that is unique to entity
      */
     void deleteCustomer(Long customerId);
+
+    /**
+     * This method first calls the customerRepository's findFilteredCustomers method
+     * to retrieve a Page of Customer objects that match the query.
+     * It then iterates over the Customer objects and retrieves the associated Vehicle objects
+     * using the getVehicle and getUser methods.
+     *
+     * @param customerFiltersQueryDto {@link CustomerFiltersQueryDto} object which contains query parameters
+     * @param isDeleted               boolean representing deleted objects
+     * @param page                    int number of wanted page
+     * @param pageSize                number of results per page
+     * @return a Page of ServiceDto objects that match the specified query
+     */
+    Page<CustomerDto> findFilteredCustomers(boolean isDeleted, CustomerFiltersQueryDto customerFiltersQueryDto, Integer page, Integer pageSize);
 }

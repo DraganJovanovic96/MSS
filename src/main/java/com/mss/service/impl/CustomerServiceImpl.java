@@ -2,14 +2,19 @@ package com.mss.service.impl;
 
 import com.mss.dto.CustomerCreateDto;
 import com.mss.dto.CustomerDto;
+import com.mss.dto.CustomerFiltersQueryDto;
 import com.mss.mapper.CustomerMapper;
 import com.mss.model.Customer;
+import com.mss.repository.CustomerCustomRepository;
 import com.mss.repository.CustomerRepository;
 import com.mss.service.CustomerService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
 import org.hibernate.Session;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,6 +38,11 @@ public class CustomerServiceImpl implements CustomerService {
      * The repository used to retrieve customer data.
      */
     private final CustomerRepository customerRepository;
+
+    /**
+     * The repository used to retrieve customer data.
+     */
+    private final CustomerCustomRepository customerCustomRepository;
 
     /**
      * The mapper used to convert customer data between CustomerDto and Customer entities.
@@ -88,6 +98,8 @@ public class CustomerServiceImpl implements CustomerService {
      */
     @Override
     public CustomerDto saveCustomer(CustomerCreateDto customerCreateDto) {
+        customerCreateDto.setPhoneNumber(customerCreateDto.getPhoneNumber().replaceAll("[^0-9]", ""));
+
         customerRepository.findByPhoneNumber(customerCreateDto.getPhoneNumber())
                 .ifPresent(customer -> {
                     if (customer.getDeleted()) {
@@ -95,7 +107,6 @@ public class CustomerServiceImpl implements CustomerService {
                     }
                     throw new ResponseStatusException(HttpStatus.CONFLICT, "Customer with that phone number already exists.");
                 });
-
         Customer customer = customerRepository.save((customerMapper.customerCreateDtoToCustomer(customerCreateDto)));
 
         return customerMapper.customerToCustomerDto(customer);
@@ -164,5 +175,35 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer is not found."));
 
         customerRepository.deleteById(customerId);
+    }
+
+    /**
+     * Retrieves a paginated list of customers based on the provided filters and deletion status.
+     * The method applies a filter to include or exclude deleted customers and then retrieves
+     * customers that match the criteria specified in the {@link CustomerFiltersQueryDto}.
+     * The customers are mapped to {@link CustomerDto} objects before being returned as a paginated result.
+     *
+     * @param isDeleted               a boolean indicating whether to include deleted customers in the results.
+     * @param customerFiltersQueryDto the {@link CustomerFiltersQueryDto} containing the filter criteria for customers.
+     *                                If any field is null, it will be ignored in the query.
+     * @param page                    the page number for pagination.
+     * @param pageSize                the size of each page for pagination.
+     * @return a {@link Page} of {@link CustomerDto} objects representing the customers that match the filter criteria.
+     * The page contains the list of customers, pagination details, and total number of rows.
+     */
+    @Override
+    public Page<CustomerDto> findFilteredCustomers(boolean isDeleted, CustomerFiltersQueryDto customerFiltersQueryDto, Integer page, Integer pageSize) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(CUSTOMER_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+
+        Page<Customer> resultPage = customerCustomRepository.findFilteredCustomers(customerFiltersQueryDto, PageRequest.of(page, pageSize));
+        List<Customer> customers = resultPage.getContent();
+
+        session.disableFilter(CUSTOMER_FILTER);
+
+        List<CustomerDto> customerDtos = customerMapper.customersToCustomerDtos(customers);
+
+        return new PageImpl<>(customerDtos, resultPage.getPageable(), customerDtos.size());
     }
 }

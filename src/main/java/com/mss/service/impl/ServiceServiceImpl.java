@@ -182,10 +182,18 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
     /**
-     * @param serviceFiltersQueryDto {@link ServiceFiltersQueryDto} object which contains query parameters
-     * @param page                   int number of wanted page
-     * @param pageSize               number of results per page
-     * @return
+     * Retrieves a paginated list of services based on the provided filters and deletion status.
+     * The method applies a filter to include or exclude deleted services and then retrieves
+     * services that match the criteria specified in the {@link ServiceFiltersQueryDto}.
+     * The services are mapped to {@link ServiceDto} objects before being returned as a paginated result.
+     *
+     * @param isDeleted              a boolean indicating whether to include deleted services in the results.
+     * @param serviceFiltersQueryDto the {@link ServiceFiltersQueryDto} containing the filter criteria for services.
+     *                               If any field is null, it will be ignored in the query.
+     * @param page                   the page number for pagination.
+     * @param pageSize               the size of each page for pagination.
+     * @return a {@link Page} of {@link ServiceDto} objects representing the services that match the filter criteria.
+     * The page contains the list of services, pagination details, and total number of rows.
      */
     @Override
     public Page<ServiceDto> findFilteredServices(boolean isDeleted, ServiceFiltersQueryDto serviceFiltersQueryDto, Integer page, Integer pageSize) {
