@@ -1,9 +1,11 @@
 package com.mss.mapper;
 
 
+import com.mss.dto.LocalStorageUserDto;
 import com.mss.dto.UserDto;
 import com.mss.model.User;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 
@@ -48,4 +50,14 @@ public interface UserMapper {
      * @return a List<User> containing the UserDtos information
      */
     List<User> userDtosToUsers(List<UserDto> userDtos);
+
+    /**
+     * Maps a User object to a LocalStorageUserDto object.
+     *
+     * @param user the User object to be mapped to a LocalStorageUserDto object
+     * @return a LocalStorageUserDto object containing the user's information
+     */
+    @Mapping(target = "role", expression = "java(user.getRole().name())")
+    LocalStorageUserDto userToLocalStorageUserDto(User user);
+
 }

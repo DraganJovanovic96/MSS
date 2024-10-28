@@ -1,8 +1,7 @@
 package com.mss.controller;
 
-import com.mss.dto.UserDto;
+import com.mss.dto.LocalStorageUserDto;
 import com.mss.mapper.UserMapper;
-import com.mss.model.User;
 import com.mss.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -64,17 +63,17 @@ public class UserController {
      * The endpoint accepts a GET request.
      * Retrieves the users data for authenticated user.
      *
-     * @return ResponseEntity<UserDto> containing the users data for the authenticated user.
+     * @return ResponseEntity<LocalStorageUserDto> containing the users data for the authenticated user.
      */
     @GetMapping(value = "/user", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
     @ApiOperation(value = "Get User's data")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "User's data successfully fetched.", response = UserDto .class),
+            @ApiResponse(code = 200, message = "User's data successfully fetched.", response = LocalStorageUserDto.class),
             @ApiResponse(code = 404, message = "User isn't authenticated.")
     })
-    public ResponseEntity<UserDto> getUser() {
-        User user = userService.getUserFromAuthentication();
-        return ResponseEntity.ok(userMapper.userToUserDto(user));
+    public ResponseEntity<LocalStorageUserDto> getUser() {
+        userService.getUserFromAuthentication();
+        return ResponseEntity.ok(userService.getLocalStorageUserDtoFromAuthentication());
     }
 }
