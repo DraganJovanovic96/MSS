@@ -1,18 +1,19 @@
 package com.mss.controller;
 
+import com.mss.dto.UserDto;
+import com.mss.mapper.UserMapper;
+import com.mss.model.User;
 import com.mss.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * The UserController class is a REST controller which is responsible for handling HTTP requests related to User management.
@@ -34,6 +35,11 @@ public class UserController {
     private final UserService userService;
 
     /**
+     * The mapper used to for users.
+     */
+    private final UserMapper userMapper;
+
+    /**
      * The endpoint accepts a DELETE request.
      *
      * @param userId the id of the User to delete
@@ -52,5 +58,23 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .build();
+    }
+
+    /**
+     * The endpoint accepts a GET request.
+     * Retrieves the users data for authenticated user.
+     *
+     * @return ResponseEntity<UserDto> containing the users data for the authenticated user.
+     */
+    @GetMapping(value = "/user", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
+    @ApiOperation(value = "Get User's data")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "User's data successfully fetched.", response = UserDto .class),
+            @ApiResponse(code = 404, message = "User isn't authenticated.")
+    })
+    public ResponseEntity<UserDto> getUser() {
+        User user = userService.getUserFromAuthentication();
+        return ResponseEntity.ok(userMapper.userToUserDto(user));
     }
 }
