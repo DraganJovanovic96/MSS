@@ -1,6 +1,8 @@
 package com.mss.service.impl;
 
+import com.mss.dto.LocalStorageUserDto;
 import com.mss.enumeration.Role;
+import com.mss.mapper.UserMapper;
 import com.mss.model.User;
 import com.mss.repository.TokenRepository;
 import com.mss.repository.UserRepository;
@@ -37,6 +39,11 @@ public class UserServiceImpl implements UserService {
     private final TokenRepository tokenRepository;
 
     /**
+     * The mapper used to map user data.
+     */
+    private final UserMapper userMapper;
+
+    /**
      * Retrieves a user entity by their email address.
      *
      * @param email The email address of the user.
@@ -62,6 +69,25 @@ public class UserServiceImpl implements UserService {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String email = userDetails.getUsername();
             return findOneByEmail(email);
+        } else {
+            throw new RuntimeException("Authentication object does not contain user details");
+        }
+    }
+
+    /**
+     * Retrieves the username of the currently authenticated user from the Spring Security context.
+     *
+     * @return The username of the currently authenticated user.
+     * @throws RuntimeException If the authentication object does not contain user details.
+     */
+    @Override
+    public LocalStorageUserDto getLocalStorageUserDtoFromAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String email = userDetails.getUsername();
+            User user = findOneByEmail(email);
+            return userMapper.userToLocalStorageUserDto(user);
         } else {
             throw new RuntimeException("Authentication object does not contain user details");
         }
