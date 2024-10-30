@@ -2,6 +2,7 @@ package com.mss.controller;
 
 import com.mss.dto.VehicleCreateDto;
 import com.mss.dto.VehicleDto;
+import com.mss.dto.VehicleUpdateDto;
 import com.mss.service.VehicleService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -87,7 +88,7 @@ public class VehicleControllers {
             @ApiResponse(code = 404, message = "Vehicle doesn't exist.")
     })
     public ResponseEntity<VehicleDto> getVehicle(@Valid @PathVariable Long vehicleId) {
-        VehicleDto vehicleDto = vehicleService.findVehicleById(vehicleId, false);
+        VehicleDto vehicleDto = vehicleService.findVehicleById(vehicleId);
         return ResponseEntity.ok(vehicleDto);
     }
 
@@ -110,5 +111,23 @@ public class VehicleControllers {
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .build();
+    }
+
+    /**
+     * Updates the vehicle with the information provided in the VehicleUpdateDTO.
+     *
+     * @param vehicleUpdateDto The VehicleUpdateDTO containing the vehicle information
+     * @return The ResponseEntity containing the updated VehicleDto
+     */
+    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:delete', 'user:delete')")
+    @ApiOperation(value = "Update vehicle through VehicleUpdateDto")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully updated vehicle.", response = VehicleDto.class),
+            @ApiResponse(code = 404, message = "Vehicle is not found.")
+    })
+    public ResponseEntity<VehicleDto> updateVehicle(@Valid @RequestBody VehicleUpdateDto vehicleUpdateDto) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(vehicleService.updateVehicle(vehicleUpdateDto));
     }
 }

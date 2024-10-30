@@ -2,6 +2,7 @@ package com.mss.service;
 
 import com.mss.dto.VehicleCreateDto;
 import com.mss.dto.VehicleDto;
+import com.mss.dto.VehicleUpdateDto;
 
 import java.util.List;
 
@@ -29,7 +30,7 @@ public interface VehicleService {
      * @param vehicleId the unique identifier of the vehicle to retrieve
      * @return a {@link VehicleDto} representing the found vehicle
      */
-    VehicleDto findVehicleById(Long vehicleId, boolean isDeleted);
+    VehicleDto findVehicleById(Long vehicleId);
 
     /**
      * A method for saving vehicles. It is implemented in VehicleServiceImpl class.
@@ -45,4 +46,18 @@ public interface VehicleService {
      * @param vehicleId parameter that is unique to entity
      */
     void deleteVehicle(Long vehicleId);
+
+    /**
+     * Updates an existing vehicle with the provided details.
+     *
+     * <p>This method accepts a {@link VehicleUpdateDto} containing updated information for a
+     * specific vehicle, modifies the vehicle's properties accordingly, and returns the updated
+     * {@link VehicleDto} object. This operation typically includes updating vehicle attributes like
+     * make, model, year, and other relevant fields. Validation and authorization checks may be
+     * performed prior to updating the vehicle.</p>
+     *
+     * @param vehicleUpdateDto a DTO containing the updated details of the vehicle
+     * @return {@link VehicleDto} the updated vehicle data, encapsulated in a DTO for response
+     */
+    VehicleDto updateVehicle(VehicleUpdateDto vehicleUpdateDto);
 }
