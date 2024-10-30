@@ -2,6 +2,7 @@ package com.mss.service.impl;
 
 import com.mss.dto.VehicleCreateDto;
 import com.mss.dto.VehicleDto;
+import com.mss.dto.VehicleUpdateDto;
 import com.mss.mapper.VehicleMapper;
 import com.mss.model.Customer;
 import com.mss.model.Vehicle;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -82,15 +84,9 @@ public class VehicleServiceImpl implements VehicleService {
      * @return {@link VehicleDto} which contains info about specific vehicle
      */
     @Override
-    public VehicleDto findVehicleById(Long vehicleId, boolean isDeleted) {
-        Session session = entityManager.unwrap(Session.class);
-        Filter filter = session.enableFilter(VEHICLE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
-
+    public VehicleDto findVehicleById(Long vehicleId) {
         Vehicle vehicle = vehicleRepository.findOneById(vehicleId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Vehicle with this id doesn't exist"));
-
-        session.disableFilter(VEHICLE_FILTER);
 
         return vehicleMapper.vehicleToVehicleDto(vehicle);
     }
@@ -153,5 +149,36 @@ public class VehicleServiceImpl implements VehicleService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle is not found."));
 
         vehicleRepository.deleteById(vehicleId);
+    }
+
+    /**
+     * Updates the details of an existing vehicle based on the provided {@link VehicleUpdateDto}.
+     *
+     * <p>This method retrieves a vehicle by its ID from the repository, applies updates to
+     * fields such as the year of manufacture, model, license plate, and manufacturer,
+     * and updates its deletion status as specified in the DTO. After modification,
+     * the updated vehicle is saved back to the repository, and a {@link VehicleDto}
+     * representation of the updated vehicle is returned.</p>
+     *
+     * @param vehicleUpdateDto a DTO containing the new details for the vehicle update
+     * @return {@link VehicleDto} the updated vehicle data, encapsulated in a DTO format for response
+     * @throws ResponseStatusException with {@code HttpStatus.NOT_FOUND} if no vehicle exists with the specified ID
+     */
+    @Override
+    public VehicleDto updateVehicle(VehicleUpdateDto vehicleUpdateDto) {
+        Vehicle vehicle = vehicleRepository.findOneById(vehicleUpdateDto.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Vehicle with this id doesn't exist"));
+
+        vehicle.setUpdatedAt(Instant.now());
+        vehicle.setYearOfManufacture(vehicleUpdateDto.getYearOfManufacture());
+        vehicle.setModel(vehicleUpdateDto.getModel());
+        vehicle.setVehiclePlate(vehicleUpdateDto.getVehiclePlate());
+        vehicle.setManufacturer(vehicleUpdateDto.getManufacturer());
+        vehicle.setDeleted(vehicleUpdateDto.getDeleted());
+        vehicle.setVin(vehicleUpdateDto.getVin());
+
+        vehicleRepository.save(vehicle);
+
+        return vehicleMapper.vehicleToVehicleDto(vehicle);
     }
 }
