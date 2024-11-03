@@ -1,8 +1,6 @@
 package com.mss.service;
 
-import com.mss.dto.CustomerCreateDto;
-import com.mss.dto.CustomerDto;
-import com.mss.dto.CustomerFiltersQueryDto;
+import com.mss.dto.*;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -47,7 +45,7 @@ public interface CustomerService {
      * @param customerId the unique identifier of the customer to retrieve
      * @return a {@link CustomerDto} representing the found customer
      */
-    CustomerDto findCustomerById(Long customerId, boolean isDeleted);
+    CustomerDto findCustomerById(Long customerId);
 
     /**
      * Finds a customer by their phone number.
@@ -77,4 +75,16 @@ public interface CustomerService {
      * @return a Page of ServiceDto objects that match the specified query
      */
     Page<CustomerDto> findFilteredCustomers(boolean isDeleted, CustomerFiltersQueryDto customerFiltersQueryDto, Integer page, Integer pageSize);
+
+    /**
+     * Updates an existing customer with the provided details.
+     *
+     * <p>This method accepts a {@link CustomerUpdateDto} containing updated information for a
+     * specific customer, modifies the customer's properties accordingly, and returns the updated
+     * {@link CustomerDto} object. This operation typically includes updating customer attributes.</p>
+     *
+     * @param customerUpdateDto a DTO containing the updated details of the customer
+     * @return {@link CustomerDto} the updated customer data, encapsulated in a DTO for response
+     */
+    CustomerDto updateCustomer(CustomerUpdateDto customerUpdateDto);
 }

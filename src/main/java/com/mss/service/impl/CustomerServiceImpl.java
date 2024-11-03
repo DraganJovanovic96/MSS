@@ -3,10 +3,13 @@ package com.mss.service.impl;
 import com.mss.dto.CustomerCreateDto;
 import com.mss.dto.CustomerDto;
 import com.mss.dto.CustomerFiltersQueryDto;
+import com.mss.dto.CustomerUpdateDto;
 import com.mss.mapper.CustomerMapper;
 import com.mss.model.Customer;
+import com.mss.model.Vehicle;
 import com.mss.repository.CustomerCustomRepository;
 import com.mss.repository.CustomerRepository;
+import com.mss.repository.VehicleRepository;
 import com.mss.service.CustomerService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +20,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +43,11 @@ public class CustomerServiceImpl implements CustomerService {
      * The repository used to retrieve customer data.
      */
     private final CustomerRepository customerRepository;
+
+    /**
+     * The repository used to retrieve customer data.
+     */
+    private final VehicleRepository vehicleRepository;
 
     /**
      * The repository used to retrieve customer data.
@@ -117,19 +127,12 @@ public class CustomerServiceImpl implements CustomerService {
      * In case that customer doesn't exist we get ResponseStatusException.NOT_FOUND.
      *
      * @param customerId used to find Customer by id
-     * @param isDeleted  used to check if object is softly deleted
      * @return {@link CustomerDto} which contains info about specific customer
      */
     @Override
-    public CustomerDto findCustomerById(Long customerId, boolean isDeleted) {
-        Session session = entityManager.unwrap(Session.class);
-        Filter filter = session.enableFilter(CUSTOMER_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
-
+    public CustomerDto findCustomerById(Long customerId) {
         Customer customer = customerRepository.findOneById(customerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer with this id doesn't exist"));
-
-        session.disableFilter(CUSTOMER_FILTER);
 
         return customerMapper.customerToCustomerDto(customer);
     }
@@ -163,6 +166,7 @@ public class CustomerServiceImpl implements CustomerService {
      *
      * @param customerId parameter that is unique to entity
      */
+    @Transactional
     public void deleteCustomer(Long customerId) {
         customerRepository.findById(customerId)
                 .map(customer -> {
@@ -170,6 +174,14 @@ public class CustomerServiceImpl implements CustomerService {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer is already deleted.");
                     }
 
+                    for (Vehicle vehicle : customer.getVehicles()) {
+                        if (Boolean.FALSE.equals(vehicle.getDeleted())) {
+                            vehicle.setDeletedByCascade(true);
+                            vehicleRepository.save(vehicle);
+                        }
+                    }
+
+                    entityManager.flush();
                     return customer;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer is not found."));
@@ -205,5 +217,45 @@ public class CustomerServiceImpl implements CustomerService {
         List<CustomerDto> customerDtos = customerMapper.customersToCustomerDtos(customers);
 
         return new PageImpl<>(customerDtos, resultPage.getPageable(), customerDtos.size());
+    }
+
+    /**
+     * Updates the details of an existing customer based on the provided {@link CustomerUpdateDto}.
+     *
+     * <p>This method retrieves a customer by its ID from the repository, applies updates to
+     * fields and updates its deletion status as specified in the DTO. After modification,
+     * the updated customer is saved back to the repository, and a {@link CustomerDto}
+     * representation of the updated customer is returned.</p>
+     *
+     * @param customerUpdateDto a DTO containing the new details for the vehicle update
+     * @return {@link CustomerDto} the updated vehicle data, encapsulated in a DTO format for response
+     * @throws ResponseStatusException with {@code HttpStatus.NOT_FOUND} if no customer exists with the specified ID
+     */
+    @Override
+    @Transactional
+    public CustomerDto updateCustomer(CustomerUpdateDto customerUpdateDto) {
+        Customer customer = customerRepository.findOneById(customerUpdateDto.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Customer with this id doesn't exist"));
+
+        customer.setUpdatedAt(Instant.now());
+        customer.setFirstname(customerUpdateDto.getFirstname());
+        customer.setLastname(customerUpdateDto.getLastname());
+        customer.setAddress(customerUpdateDto.getAddress());
+        customer.setPhoneNumber(customerUpdateDto.getPhoneNumber());
+        customer.setDeleted(customerUpdateDto.getDeleted());
+
+
+        for (Vehicle vehicle : customer.getVehicles()) {
+            if (Boolean.TRUE.equals(vehicle.getDeletedByCascade()) && Boolean.TRUE.equals(vehicle.getDeleted())) {
+                vehicle.setDeleted(false);
+                vehicle.setDeletedByCascade(false);
+                vehicleRepository.save(vehicle);
+            }
+        }
+
+        customerRepository.save(customer);
+        entityManager.flush();
+
+        return customerMapper.customerToCustomerDto(customer);
     }
 }

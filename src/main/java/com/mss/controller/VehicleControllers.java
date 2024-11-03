@@ -98,7 +98,7 @@ public class VehicleControllers {
      * @param vehicleId the id of the Vehicle to delete
      * @return HTTP status
      */
-    @DeleteMapping(value = "/{vehicleId}")
+    @DeleteMapping(value = "/id/{vehicleId}")
     @PreAuthorize("hasAnyAuthority('admin:delete', 'user:delete')")
     @ApiOperation(value = "Delete Vehicle")
     @ApiResponses(value = {
@@ -119,8 +119,8 @@ public class VehicleControllers {
      * @param vehicleUpdateDto The VehicleUpdateDTO containing the vehicle information
      * @return The ResponseEntity containing the updated VehicleDto
      */
-    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAnyAuthority('admin:delete', 'user:delete')")
+    @PutMapping(value = "/id/{vehicleId}",consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:update', 'user:update')")
     @ApiOperation(value = "Update vehicle through VehicleUpdateDto")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Successfully updated vehicle.", response = VehicleDto.class),

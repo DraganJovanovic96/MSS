@@ -41,4 +41,10 @@ public abstract class BaseEntity<T> {
      */
     @Column
     private Boolean deleted = false;
+
+    /**
+     * Indicates whether the entity has been deleted by cascade.
+     */
+    @Column
+    private Boolean deletedByCascade = false;
 }
