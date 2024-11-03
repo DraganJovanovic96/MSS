@@ -15,6 +15,7 @@ import org.hibernate.Filter;
 import org.hibernate.Session;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
@@ -80,7 +81,6 @@ public class VehicleServiceImpl implements VehicleService {
      * In case that vehicle doesn't exist we get ResponseStatusException.NOT_FOUND.
      *
      * @param vehicleId used to find Vehicle by id
-     * @param isDeleted used to check if object is softly deleted
      * @return {@link VehicleDto} which contains info about specific vehicle
      */
     @Override
@@ -126,6 +126,7 @@ public class VehicleServiceImpl implements VehicleService {
 
         Vehicle vehicle = vehicleMapper.vehicleCreateDtoToVehicle(vehicleCreateDto);
         vehicle.setCustomer(customer);
+        vehicle.setVin(vehicle.getVin().toUpperCase());
         vehicleRepository.save(vehicle);
 
         return vehicleMapper.vehicleToVehicleDto(vehicle);
@@ -137,6 +138,7 @@ public class VehicleServiceImpl implements VehicleService {
      * @param vehicleId parameter that is unique to entity
      */
     @Override
+    @Transactional
     public void deleteVehicle(Long vehicleId) {
         vehicleRepository.findById(vehicleId)
                 .map(vehicle -> {
@@ -165,9 +167,13 @@ public class VehicleServiceImpl implements VehicleService {
      * @throws ResponseStatusException with {@code HttpStatus.NOT_FOUND} if no vehicle exists with the specified ID
      */
     @Override
+    @Transactional
     public VehicleDto updateVehicle(VehicleUpdateDto vehicleUpdateDto) {
         Vehicle vehicle = vehicleRepository.findOneById(vehicleUpdateDto.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Vehicle with this id doesn't exist"));
+
+        Customer customer = customerRepository.findOneById(vehicleUpdateDto.getCustomerId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Customer with this id doesn't exist"));
 
         vehicle.setUpdatedAt(Instant.now());
         vehicle.setYearOfManufacture(vehicleUpdateDto.getYearOfManufacture());
@@ -175,7 +181,8 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.setVehiclePlate(vehicleUpdateDto.getVehiclePlate());
         vehicle.setManufacturer(vehicleUpdateDto.getManufacturer());
         vehicle.setDeleted(vehicleUpdateDto.getDeleted());
-        vehicle.setVin(vehicleUpdateDto.getVin());
+        vehicle.setVin(vehicleUpdateDto.getVin().toUpperCase());
+        vehicle.setCustomer(customer);
 
         vehicleRepository.save(vehicle);
 

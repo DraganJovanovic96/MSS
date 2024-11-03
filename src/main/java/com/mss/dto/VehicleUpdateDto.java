@@ -30,4 +30,9 @@ public class VehicleUpdateDto extends BaseEntityDto {
      * Year when the vehicle was manufactured.
      */
     private int yearOfManufacture;
+
+    /**
+     * Id of the customer who is vehicle owner.
+     */
+    private Long customerId;
 }

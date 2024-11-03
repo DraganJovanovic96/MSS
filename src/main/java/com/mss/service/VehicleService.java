@@ -53,8 +53,7 @@ public interface VehicleService {
      * <p>This method accepts a {@link VehicleUpdateDto} containing updated information for a
      * specific vehicle, modifies the vehicle's properties accordingly, and returns the updated
      * {@link VehicleDto} object. This operation typically includes updating vehicle attributes like
-     * make, model, year, and other relevant fields. Validation and authorization checks may be
-     * performed prior to updating the vehicle.</p>
+     * make, model, year, and other relevant fields.</p>
      *
      * @param vehicleUpdateDto a DTO containing the updated details of the vehicle
      * @return {@link VehicleDto} the updated vehicle data, encapsulated in a DTO for response

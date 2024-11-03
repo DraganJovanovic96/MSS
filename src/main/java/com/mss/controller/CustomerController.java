@@ -1,8 +1,6 @@
 package com.mss.controller;
 
-import com.mss.dto.CustomerCreateDto;
-import com.mss.dto.CustomerDto;
-import com.mss.dto.CustomerFiltersQueryDto;
+import com.mss.dto.*;
 import com.mss.service.CustomerService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -69,7 +67,7 @@ public class CustomerController {
             @ApiResponse(code = 404, message = "Customer doesn't exist.")
     })
     public ResponseEntity<CustomerDto> getCustomer(@Valid @PathVariable Long customerId) {
-        CustomerDto customerDto = customerService.findCustomerById(customerId, false);
+        CustomerDto customerDto = customerService.findCustomerById(customerId);
         return ResponseEntity.ok(customerDto);
     }
 
@@ -120,7 +118,7 @@ public class CustomerController {
      * @param customerId the id of the Customer to delete
      * @return HTTP status
      */
-    @DeleteMapping(value = "/{customerId}")
+    @DeleteMapping(value = "/id/{customerId}")
     @PreAuthorize("hasAnyAuthority('admin:delete', 'user:delete')")
     @ApiOperation(value = "Delete customer")
     @ApiResponses(value = {
@@ -156,5 +154,23 @@ public class CustomerController {
         Page<CustomerDto> resultPage = customerService.findFilteredCustomers(false, customerFiltersQueryDto, page, pageSize);
 
         return new ResponseEntity<>(resultPage.getContent(), HttpStatus.OK);
+    }
+
+    /**
+     * Updates the customer with the information provided in the CustomerUpdateDTO.
+     *
+     * @param customerUpdateDto The CustomerUpdateDTO containing the vehicle information
+     * @return The ResponseEntity containing the updated VehicleDto
+     */
+    @PutMapping(value = "/id/{customerId}",consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:update', 'user:update')")
+    @ApiOperation(value = "Update customer through CustomerUpdateDto")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully updated customer.", response = CustomerDto.class),
+            @ApiResponse(code = 404, message = "Customer is not found.")
+    })
+    public ResponseEntity<CustomerDto> updateCustomer(@Valid @RequestBody CustomerUpdateDto customerUpdateDto) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(customerService.updateCustomer(customerUpdateDto));
     }
 }
