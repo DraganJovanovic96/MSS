@@ -1,18 +1,20 @@
 package com.mss.service.impl;
 
-import com.mss.dto.VehicleCreateDto;
-import com.mss.dto.VehicleDto;
-import com.mss.dto.VehicleUpdateDto;
+import com.mss.dto.*;
 import com.mss.mapper.VehicleMapper;
 import com.mss.model.Customer;
 import com.mss.model.Vehicle;
 import com.mss.repository.CustomerRepository;
+import com.mss.repository.VehicleCustomRepository;
 import com.mss.repository.VehicleRepository;
 import com.mss.service.VehicleService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
 import org.hibernate.Session;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,11 @@ public class VehicleServiceImpl implements VehicleService {
      * The repository used to retrieve vehicle data.
      */
     private final VehicleRepository vehicleRepository;
+
+    /**
+     * The repository used to retrieve vehicle data.
+     */
+    private final VehicleCustomRepository vehicleCustomRepository;
 
     /**
      * The repository used to retrieve customer data.
@@ -187,5 +194,32 @@ public class VehicleServiceImpl implements VehicleService {
         vehicleRepository.save(vehicle);
 
         return vehicleMapper.vehicleToVehicleDto(vehicle);
+    }
+
+    /**
+     * This method first calls the vehicleRepository's findFilteredVehicles method
+     * to retrieve a Page of Vehicle objects that match the query.
+     * It then iterates over the Vehicle objects and retrieves the associated Customer objects.
+     *
+     * @param isDeleted              boolean representing deleted objects
+     * @param vehicleFiltersQueryDto {@link VehicleFiltersQueryDto} object which contains query parameters
+     * @param page                   int number of wanted page
+     * @param pageSize               number of results per page
+     * @return a Page of ServiceDto objects that match the specified query
+     */
+    @Override
+    public Page<VehicleDto> findFilteredVehicles(boolean isDeleted, VehicleFiltersQueryDto vehicleFiltersQueryDto, Integer page, Integer pageSize) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(VEHICLE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+
+        Page<Vehicle> resultPage = vehicleCustomRepository.findFilteredVehicles(vehicleFiltersQueryDto, PageRequest.of(page, pageSize));
+        List<Vehicle> vehicles = resultPage.getContent();
+
+        session.disableFilter(VEHICLE_FILTER);
+
+        List<VehicleDto> vehicleDtos = vehicleMapper.vehiclesToVehicleDtos(vehicles);
+
+        return new PageImpl<>(vehicleDtos, resultPage.getPageable(), resultPage.getTotalElements());
     }
 }

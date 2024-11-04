@@ -1,14 +1,14 @@
 package com.mss.controller;
 
-import com.mss.dto.VehicleCreateDto;
-import com.mss.dto.VehicleDto;
-import com.mss.dto.VehicleUpdateDto;
+import com.mss.dto.*;
 import com.mss.service.VehicleService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -129,5 +129,33 @@ public class VehicleControllers {
     public ResponseEntity<VehicleDto> updateVehicle(@Valid @RequestBody VehicleUpdateDto vehicleUpdateDto) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(vehicleService.updateVehicle(vehicleUpdateDto));
+    }
+
+    /**
+     * The getVehicles method is a REST endpoint that returns a ResponseEntity containing a List of VehicleDtos.
+     * This method accepts an optional vehicleFiltersQueryDto object as a request body, which contains the query attributes for filtering Vehicle entities.
+     * It also accepts an optional pageNo parameter as a query parameter, which specifies the page number to retrieve, and numberOfResultsPerPage
+     * which specifies number of results per page.
+     *
+     * @param vehicleFiltersQueryDto contains parameters based on data will be filtered
+     * @param page                    number of wanted page
+     * @param pageSize                number of wanted results per page
+     * @return ResponseEntity<List> - The HTTP response containing a list of {@link VehicleDto} objects as the response body
+     */
+    @PostMapping("/search")
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
+    @ApiOperation(value = "Get all/filtered vehicles")
+    @ApiResponse(code = 200, message = "Requests data successfully fetched.")
+    public ResponseEntity<List<VehicleDto>> getVehicles(@RequestBody(required = false) VehicleFiltersQueryDto vehicleFiltersQueryDto,
+                                                          @RequestParam(value = "page", defaultValue = "0") int page,
+                                                          @RequestParam(value = "pageSize", defaultValue = "5") int pageSize) {
+        Page<VehicleDto> resultPage = vehicleService.findFilteredVehicles(false, vehicleFiltersQueryDto, page, pageSize);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Total-Items", String.valueOf(resultPage.getTotalElements()));
+        headers.add("X-Total-Pages", String.valueOf(resultPage.getTotalPages()));
+        headers.add("X-Current-Page", String.valueOf(resultPage.getNumber()));
+
+        return new ResponseEntity<>(resultPage.getContent(), headers, HttpStatus.OK);
     }
 }
