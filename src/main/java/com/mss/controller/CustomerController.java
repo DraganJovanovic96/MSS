@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -153,7 +154,12 @@ public class CustomerController {
                                                           @RequestParam(value = "pageSize", defaultValue = "5") int pageSize) {
         Page<CustomerDto> resultPage = customerService.findFilteredCustomers(false, customerFiltersQueryDto, page, pageSize);
 
-        return new ResponseEntity<>(resultPage.getContent(), HttpStatus.OK);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Total-Items", String.valueOf(resultPage.getTotalElements()));
+        headers.add("X-Total-Pages", String.valueOf(resultPage.getTotalPages()));
+        headers.add("X-Current-Page", String.valueOf(resultPage.getNumber()));
+
+        return new ResponseEntity<>(resultPage.getContent(), headers, HttpStatus.OK);
     }
 
     /**

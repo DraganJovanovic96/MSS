@@ -216,7 +216,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         List<CustomerDto> customerDtos = customerMapper.customersToCustomerDtos(customers);
 
-        return new PageImpl<>(customerDtos, resultPage.getPageable(), customerDtos.size());
+        return new PageImpl<>(customerDtos, resultPage.getPageable(), resultPage.getTotalElements());
     }
 
     /**

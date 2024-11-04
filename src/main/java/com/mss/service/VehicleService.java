@@ -2,7 +2,9 @@ package com.mss.service;
 
 import com.mss.dto.VehicleCreateDto;
 import com.mss.dto.VehicleDto;
+import com.mss.dto.VehicleFiltersQueryDto;
 import com.mss.dto.VehicleUpdateDto;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -59,4 +61,17 @@ public interface VehicleService {
      * @return {@link VehicleDto} the updated vehicle data, encapsulated in a DTO for response
      */
     VehicleDto updateVehicle(VehicleUpdateDto vehicleUpdateDto);
+
+    /**
+     * This method first calls the vehicleRepository's findFilteredVehicles method
+     * to retrieve a Page of Vehicle objects that match the query.
+     * It then iterates over the Vehicle objects and retrieves the associated Customer objects.
+     *
+     * @param vehicleFiltersQueryDto {@link VehicleFiltersQueryDto} object which contains query parameters
+     * @param isDeleted              boolean representing deleted objects
+     * @param page                   int number of wanted page
+     * @param pageSize               number of results per page
+     * @return a Page of ServiceDto objects that match the specified query
+     */
+    Page<VehicleDto> findFilteredVehicles(boolean isDeleted, VehicleFiltersQueryDto vehicleFiltersQueryDto, Integer page, Integer pageSize);
 }

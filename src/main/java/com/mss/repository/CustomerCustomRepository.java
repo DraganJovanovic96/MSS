@@ -39,7 +39,6 @@ public class CustomerCustomRepository {
      * The page contains the list of customers, pagination details, and total number of rows.
      */
     public Page<Customer> findFilteredCustomers(CustomerFiltersQueryDto filters, Pageable pageable) {
-        filters.setPhoneNumber(filters.getPhoneNumber().replaceAll("[^0-9]", ""));
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery cq = cb.createQuery();
         Root<Customer> customer = cq.from(Customer.class);
@@ -56,6 +55,7 @@ public class CustomerCustomRepository {
         }
 
         if (Objects.nonNull(filters) && Objects.nonNull(filters.getPhoneNumber())) {
+            filters.setPhoneNumber(filters.getPhoneNumber().replaceAll("[^0-9]", ""));
             predicates.add(cb.like(cb.lower(customer.get("phoneNumber")), "%" + filters.getPhoneNumber() + "%"));
         }
 

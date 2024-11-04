@@ -208,6 +208,6 @@ public class ServiceServiceImpl implements ServiceService {
 
         List<ServiceDto> serviceDtos = serviceMapper.serviceToServiceDtos(services);
 
-        return new PageImpl<>(serviceDtos, resultPage.getPageable(), serviceDtos.size());
+        return new PageImpl<>(serviceDtos, resultPage.getPageable(), resultPage.getTotalElements());
     }
 }
