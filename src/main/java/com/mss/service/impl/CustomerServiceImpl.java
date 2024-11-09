@@ -6,10 +6,9 @@ import com.mss.dto.CustomerFiltersQueryDto;
 import com.mss.dto.CustomerUpdateDto;
 import com.mss.mapper.CustomerMapper;
 import com.mss.model.Customer;
+import com.mss.model.ServiceType;
 import com.mss.model.Vehicle;
-import com.mss.repository.CustomerCustomRepository;
-import com.mss.repository.CustomerRepository;
-import com.mss.repository.VehicleRepository;
+import com.mss.repository.*;
 import com.mss.service.CustomerService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +42,16 @@ public class CustomerServiceImpl implements CustomerService {
      * The repository used to retrieve customer data.
      */
     private final CustomerRepository customerRepository;
+
+    /**
+     * The repository used to retrieve customer data.
+     */
+    private final ServiceTypeRepository serviceTypeRepository;
+
+    /**
+     * The repository used to retrieve customer data.
+     */
+    private final ServiceRepository serviceRepository;
 
     /**
      * The repository used to retrieve customer data.
@@ -175,7 +184,21 @@ public class CustomerServiceImpl implements CustomerService {
                     }
 
                     for (Vehicle vehicle : customer.getVehicles()) {
-                        if (Boolean.FALSE.equals(vehicle.getDeleted())) {
+                        if (Boolean.FALSE.equals(vehicle.getDeleted()) && Boolean.FALSE.equals(vehicle.getDeletedByCascade())) {
+
+                            for (com.mss.model.Service service : vehicle.getServices()) {
+                                if (Boolean.FALSE.equals(service.getDeleted()) && Boolean.FALSE.equals(service.getDeletedByCascade())) {
+
+                                    for (ServiceType serviceType : service.getServiceTypes()) {
+                                        if (Boolean.FALSE.equals(serviceType.getDeleted()) && Boolean.FALSE.equals(serviceType.getDeletedByCascade())) {
+                                            serviceType.setDeletedByCascade(true);
+                                            serviceTypeRepository.save(serviceType);
+                                        }
+                                    }
+                                    service.setDeletedByCascade(true);
+                                    serviceRepository.save(service);
+                                }
+                            }
                             vehicle.setDeletedByCascade(true);
                             vehicleRepository.save(vehicle);
                         }
@@ -244,17 +267,32 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setPhoneNumber(customerUpdateDto.getPhoneNumber());
         customer.setDeleted(customerUpdateDto.getDeleted());
 
-
         for (Vehicle vehicle : customer.getVehicles()) {
             if (Boolean.TRUE.equals(vehicle.getDeletedByCascade()) && Boolean.TRUE.equals(vehicle.getDeleted())) {
                 vehicle.setDeleted(false);
                 vehicle.setDeletedByCascade(false);
+
+                for (com.mss.model.Service service : vehicle.getServices()) {
+                    if (Boolean.TRUE.equals(service.getDeletedByCascade()) && Boolean.TRUE.equals(service.getDeleted())) {
+                        service.setDeleted(false);
+                        service.setDeletedByCascade(false);
+
+                        for (ServiceType serviceType : service.getServiceTypes()) {
+                            if (Boolean.TRUE.equals(serviceType.getDeletedByCascade()) && Boolean.TRUE.equals(serviceType.getDeleted())) {
+                                serviceType.setDeleted(false);
+                                serviceType.setDeletedByCascade(false);
+                                serviceTypeRepository.save(serviceType);
+                            }
+                        }
+                        serviceRepository.save(service);
+                    }
+                }
                 vehicleRepository.save(vehicle);
             }
         }
-
         customerRepository.save(customer);
         entityManager.flush();
+
 
         return customerMapper.customerToCustomerDto(customer);
     }

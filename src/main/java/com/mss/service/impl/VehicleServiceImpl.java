@@ -1,12 +1,14 @@
 package com.mss.service.impl;
 
-import com.mss.dto.*;
+import com.mss.dto.VehicleCreateDto;
+import com.mss.dto.VehicleDto;
+import com.mss.dto.VehicleFiltersQueryDto;
+import com.mss.dto.VehicleUpdateDto;
 import com.mss.mapper.VehicleMapper;
 import com.mss.model.Customer;
+import com.mss.model.ServiceType;
 import com.mss.model.Vehicle;
-import com.mss.repository.CustomerRepository;
-import com.mss.repository.VehicleCustomRepository;
-import com.mss.repository.VehicleRepository;
+import com.mss.repository.*;
 import com.mss.service.VehicleService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +41,16 @@ public class VehicleServiceImpl implements VehicleService {
      * The repository used to retrieve vehicle data.
      */
     private final VehicleRepository vehicleRepository;
+
+    /**
+     * The repository used to retrieve service type data.
+     */
+    private final ServiceTypeRepository serviceTypeRepository;
+
+    /**
+     * The repository used to retrieve vehicle data.
+     */
+    private final ServiceRepository serviceRepository;
 
     /**
      * The repository used to retrieve vehicle data.
@@ -153,6 +165,20 @@ public class VehicleServiceImpl implements VehicleService {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle is already deleted.");
                     }
 
+                    for (com.mss.model.Service service : vehicle.getServices()) {
+                        if (Boolean.FALSE.equals(service.getDeleted())) {
+
+                            for (ServiceType serviceType : service.getServiceTypes()) {
+                                if (Boolean.FALSE.equals(serviceType.getDeleted()) && Boolean.FALSE.equals(serviceType.getDeletedByCascade())) {
+                                    serviceType.setDeletedByCascade(true);
+                                    serviceTypeRepository.save(serviceType);
+                                }
+                            }
+                            service.setDeletedByCascade(true);
+                            serviceRepository.save(service);
+                        }
+                    }
+                    entityManager.flush();
                     return vehicle;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle is not found."));
@@ -191,8 +217,23 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.setVin(vehicleUpdateDto.getVin().toUpperCase());
         vehicle.setCustomer(customer);
 
-        vehicleRepository.save(vehicle);
+        for (com.mss.model.Service service : vehicle.getServices()) {
+            if (Boolean.TRUE.equals(service.getDeletedByCascade()) && Boolean.TRUE.equals(service.getDeleted())) {
+                service.setDeleted(false);
+                service.setDeletedByCascade(false);
 
+                for (ServiceType serviceType : service.getServiceTypes()) {
+                    if (Boolean.TRUE.equals(serviceType.getDeletedByCascade()) && Boolean.TRUE.equals(serviceType.getDeleted())) {
+                        serviceType.setDeleted(false);
+                        serviceType.setDeletedByCascade(false);
+                        serviceTypeRepository.save(serviceType);
+                    }
+                }
+                serviceRepository.save(service);
+            }
+        }
+        vehicleRepository.save(vehicle);
+        entityManager.flush();
         return vehicleMapper.vehicleToVehicleDto(vehicle);
     }
 

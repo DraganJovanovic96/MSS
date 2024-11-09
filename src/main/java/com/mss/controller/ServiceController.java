@@ -1,8 +1,6 @@
 package com.mss.controller;
 
-import com.mss.dto.ServiceCreateDto;
-import com.mss.dto.ServiceDto;
-import com.mss.dto.ServiceFiltersQueryDto;
+import com.mss.dto.*;
 import com.mss.service.ServiceService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -98,7 +96,7 @@ public class ServiceController {
      * @param serviceId the id of the Service to delete
      * @return HTTP status
      */
-    @DeleteMapping(value = "/{serviceId}")
+    @DeleteMapping(value = "/id/{serviceId}")
     @PreAuthorize("hasAnyAuthority('admin:delete', 'user:delete')")
     @ApiOperation(value = "Delete service")
     @ApiResponses(value = {
@@ -140,5 +138,23 @@ public class ServiceController {
         headers.add("X-Current-Page", String.valueOf(resultPage.getNumber()));
 
         return new ResponseEntity<>(resultPage.getContent(), headers, HttpStatus.OK);
+    }
+
+    /**
+     * Updates the customer with the information provided in the ServiceUpdateDto.
+     *
+     * @param serviceUpdateDto The ServiceUpdateDto containing the service information
+     * @return The ResponseEntity containing the updated ServiceDto
+     */
+    @PutMapping(value = "/id/{serviceId}",consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:update', 'user:update')")
+    @ApiOperation(value = "Update service through ServiceCreateDto")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully updated service.", response = ServiceDto.class),
+            @ApiResponse(code = 404, message = "Service is not found.")
+    })
+    public ResponseEntity<ServiceDto> updateService(@Valid @RequestBody ServiceUpdateDto serviceUpdateDto) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(serviceService.updateCustomer(serviceUpdateDto));
     }
 }

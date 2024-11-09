@@ -58,12 +58,12 @@ public class ServiceCustomRepository {
             predicates.add(cb.lessThanOrEqualTo(service.get("endDate"), filters.getEndDate()));
         }
 
-        if (Objects.nonNull(filters) && Objects.nonNull(filters.getVehicleIds()) && !filters.getVehicleIds().isEmpty()) {
-            predicates.add(service.get("vehicle").get("id").in(filters.getVehicleIds()));
+        if (Objects.nonNull(filters) && Objects.nonNull(filters.getVehicleId())) {
+            predicates.add(service.get("vehicle").get("id").in(filters.getVehicleId()));
         }
 
-        if (Objects.nonNull(filters) && Objects.nonNull(filters.getUserIds()) && !filters.getUserIds().isEmpty()) {
-            predicates.add(service.get("user").get("id").in(filters.getUserIds()));
+        if (Objects.nonNull(filters) && Objects.nonNull(filters.getUserId())) {
+            predicates.add(service.get("user").get("id").in(filters.getUserId()));
         }
 
         cq.where(cb.and(predicates.toArray(new Predicate[0])));
