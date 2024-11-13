@@ -13,7 +13,6 @@ import com.mss.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -150,21 +149,18 @@ public class AuthenticationService {
      * @param response the HTTP response
      * @throws IOException if an I/O error occurs
      */
-    public void refreshToken(
-            HttpServletRequest request,
-            HttpServletResponse response
-    ) throws IOException {
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        final String refreshHeader = request.getHeader("Refresh");
         final String refreshToken;
         final String userEmail;
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (refreshHeader == null || !refreshHeader.startsWith("Bearer ")) {
             return;
         }
-        refreshToken = authHeader.substring(7);
+        refreshToken = refreshHeader.substring(7);
         userEmail = jwtService.extractUsername(refreshToken);
+
         if (userEmail != null) {
-            var user = this.repository.findByEmail(userEmail)
-                    .orElseThrow();
+            var user = this.repository.findByEmail(userEmail).orElseThrow();
             if (jwtService.isTokenValid(refreshToken, user)) {
                 var accessToken = jwtService.generateToken(user);
                 revokeAllUserTokens(user);

@@ -1,8 +1,6 @@
 package com.mss.service;
 
-import com.mss.dto.ServiceCreateDto;
-import com.mss.dto.ServiceDto;
-import com.mss.dto.ServiceFiltersQueryDto;
+import com.mss.dto.*;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -60,4 +58,16 @@ public interface ServiceService {
      * @return a Page of ServiceDto objects that match the specified query
      */
     Page<ServiceDto> findFilteredServices(boolean isDeleted, ServiceFiltersQueryDto serviceFiltersQueryDto, Integer page, Integer pageSize);
+
+    /**
+     * Updates an existing service with the provided details.
+     *
+     * <p>This method accepts a {@link ServiceUpdateDto} containing updated information for a
+     * specific service, modifies the service's properties accordingly, and returns the updated
+     * {@link ServiceDto} object. This operation typically includes updating service attributes.</p>
+     *
+     * @param serviceUpdateDto a DTO containing the updated details of the service
+     * @return {@link ServiceDto} the updated service data, encapsulated in a DTO for response
+     */
+    ServiceDto updateCustomer(ServiceUpdateDto serviceUpdateDto);
 }

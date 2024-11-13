@@ -3,18 +3,18 @@ package com.mss.service.impl;
 import com.mss.dto.ServiceCreateDto;
 import com.mss.dto.ServiceDto;
 import com.mss.dto.ServiceFiltersQueryDto;
+import com.mss.dto.ServiceUpdateDto;
 import com.mss.mapper.ServiceMapper;
 import com.mss.mapper.UserMapper;
 import com.mss.mapper.VehicleMapper;
 import com.mss.model.Service;
+import com.mss.model.ServiceType;
 import com.mss.model.User;
 import com.mss.model.Vehicle;
-import com.mss.repository.ServiceCustomRepository;
-import com.mss.repository.ServiceRepository;
-import com.mss.repository.UserRepository;
-import com.mss.repository.VehicleRepository;
+import com.mss.repository.*;
 import com.mss.service.ServiceService;
 import jakarta.persistence.EntityManager;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
 import org.hibernate.Session;
@@ -24,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,6 +44,11 @@ public class ServiceServiceImpl implements ServiceService {
      * The repository used to retrieve service data.
      */
     private final ServiceRepository serviceRepository;
+
+    /**
+     * The repository used to retrieve service data.
+     */
+    private final ServiceTypeRepository serviceTypeRepository;
 
     /**
      * The custom repository used to retrieve service data.
@@ -151,14 +157,8 @@ public class ServiceServiceImpl implements ServiceService {
      */
     @Override
     public ServiceDto findServiceById(Long serviceId, boolean isDeleted) {
-        Session session = entityManager.unwrap(Session.class);
-        Filter filter = session.enableFilter(SERVICE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
-
         Service service = serviceRepository.findOneById(serviceId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service with this id doesn't exist"));
-
-        session.disableFilter(SERVICE_FILTER);
 
         return serviceMapper.serviceToServiceDto(service);
     }
@@ -174,6 +174,12 @@ public class ServiceServiceImpl implements ServiceService {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Service is already deleted.");
                     }
 
+                    for (ServiceType serviceType : service.getServiceTypes()) {
+                        if (Boolean.FALSE.equals(serviceType.getDeleted()) && Boolean.FALSE.equals(serviceType.getDeletedByCascade())) {
+                            serviceType.setDeletedByCascade(true);
+                            serviceTypeRepository.save(serviceType);
+                        }
+                    }
                     return service;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service is not found."));
@@ -209,5 +215,50 @@ public class ServiceServiceImpl implements ServiceService {
         List<ServiceDto> serviceDtos = serviceMapper.serviceToServiceDtos(services);
 
         return new PageImpl<>(serviceDtos, resultPage.getPageable(), resultPage.getTotalElements());
+    }
+
+    /**
+     * Updates an existing service with the provided details.
+     *
+     * <p>This method accepts a {@link ServiceUpdateDto} containing updated information for a
+     * specific service, modifies the service's properties accordingly, and returns the updated
+     * {@link ServiceDto} object. This operation typically includes updating service attributes.</p>
+     *
+     * @param serviceUpdateDto a DTO containing the updated details of the service
+     * @return {@link ServiceDto} the updated service data, encapsulated in a DTO for response
+     */
+    @Override
+    @Transactional
+    public ServiceDto updateCustomer(ServiceUpdateDto serviceUpdateDto) {
+        Service service = serviceRepository.findOneById(serviceUpdateDto.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Service with this id doesn't exist"));
+
+        Vehicle vehicle = vehicleRepository.findOneById(serviceUpdateDto.getVehicleId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Vehicle with this id doesn't exist"));
+
+        User user = userRepository.findOneById(serviceUpdateDto.getUserId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " User with this id doesn't exist"));
+
+        service.setUpdatedAt(Instant.now());
+        service.setDeleted(serviceUpdateDto.getDeleted());
+        service.setStartDate(serviceUpdateDto.getStartDate());
+        service.setEndDate(serviceUpdateDto.getEndDate());
+        service.setCurrentMileage(serviceUpdateDto.getCurrentMileage());
+        service.setNextServiceMileage(serviceUpdateDto.getNextServiceMileage());
+        service.setVehicle(vehicle);
+        service.setUser(user);
+
+        for (ServiceType serviceType : service.getServiceTypes()) {
+            if (Boolean.TRUE.equals(serviceType.getDeletedByCascade()) && Boolean.TRUE.equals(serviceType.getDeleted())) {
+                serviceType.setDeleted(false);
+                serviceType.setDeletedByCascade(false);
+                serviceTypeRepository.save(serviceType);
+            }
+        }
+
+        serviceRepository.save(service);
+        entityManager.flush();
+
+        return serviceMapper.serviceToServiceDto(service);
     }
 }

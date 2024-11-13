@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * The ServiceFiltersQueryDto class represents a data transfer object that contains query attributes for filtering Service entities.
@@ -39,12 +38,12 @@ public class ServiceFiltersQueryDto {
     /**
      * Query attribute for Service's vehicles.
      */
-    @JsonProperty("vehicleIds")
-    private List<Long> vehicleIds;
+    @JsonProperty("vehicleId")
+    private Long vehicleId;
 
     /**
      * Query attribute for Service's users.
      */
-    @JsonProperty("userIds")
-    private List<Long> userIds;
+    @JsonProperty("userId")
+    private Long userId;
 }

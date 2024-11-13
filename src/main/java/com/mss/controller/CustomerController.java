@@ -165,7 +165,7 @@ public class CustomerController {
     /**
      * Updates the customer with the information provided in the CustomerUpdateDTO.
      *
-     * @param customerUpdateDto The CustomerUpdateDTO containing the vehicle information
+     * @param customerUpdateDto The CustomerUpdateDTO containing the customer information
      * @return The ResponseEntity containing the updated VehicleDto
      */
     @PutMapping(value = "/id/{customerId}",consumes = MediaType.APPLICATION_JSON_VALUE)

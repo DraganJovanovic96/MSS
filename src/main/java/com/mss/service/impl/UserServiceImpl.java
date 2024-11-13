@@ -1,20 +1,26 @@
 package com.mss.service.impl;
 
 import com.mss.dto.LocalStorageUserDto;
+import com.mss.dto.UserDto;
 import com.mss.enumeration.Role;
 import com.mss.mapper.UserMapper;
 import com.mss.model.User;
 import com.mss.repository.TokenRepository;
 import com.mss.repository.UserRepository;
 import com.mss.service.UserService;
-import jakarta.transaction.Transactional;
+import jakarta.persistence.EntityManager;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Filter;
+import org.hibernate.Session;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 /**
  * Implementation of the User interface.
@@ -44,6 +50,18 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     /**
+     * Created USER_FILTER attribute, so we can change Filter easily if needed.
+     */
+    private static final String USER_FILTER = "deletedUserFilter";
+
+    /**
+     * An EntityManager instance is associated with a persistence context.
+     * A persistence context is a set of entity instances in which for any
+     * persistent entity identity there is a unique entity instance.
+     */
+    private final EntityManager entityManager;
+
+    /**
      * Retrieves a user entity by their email address.
      *
      * @param email The email address of the user.
@@ -54,6 +72,23 @@ public class UserServiceImpl implements UserService {
     public User findOneByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with that email doesn't exist"));
+    }
+
+    /**
+     * A method for retrieving all users implemented in UserServiceImpl class.
+     *
+     * @param isDeleted parameter that checks if object is soft deleted
+     * @return a list of all UserDtos
+     */
+    @Override
+    public List<UserDto> getAllUsers(boolean isDeleted) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(USER_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+        List<User> users = userRepository.findAll();
+        session.disableFilter(USER_FILTER);
+
+        return userMapper.usersToUserDtos(users);
     }
 
     /**
