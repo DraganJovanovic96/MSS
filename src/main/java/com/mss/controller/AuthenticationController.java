@@ -3,7 +3,6 @@ package com.mss.controller;
 
 import com.mss.dto.AuthenticationRequestDto;
 import com.mss.dto.AuthenticationResponseDto;
-import com.mss.dto.RegisterRequestDto;
 import com.mss.service.impl.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,19 +30,6 @@ public class AuthenticationController {
      * The service used to for authentication.
      */
     private final AuthenticationService service;
-
-    /**
-     * Registers a new user.
-     *
-     * @param request the registration request containing user details
-     * @return the ResponseEntity containing the authentication response
-     */
-    @PostMapping("/register")
-    public ResponseEntity<AuthenticationResponseDto> register(
-            @RequestBody RegisterRequestDto request
-    ) {
-        return ResponseEntity.ok(service.register(request));
-    }
 
     /**
      * Authenticates a user.

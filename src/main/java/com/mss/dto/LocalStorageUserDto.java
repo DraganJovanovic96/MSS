@@ -27,9 +27,4 @@ public class LocalStorageUserDto {
      * The URL can be used to retrieve the image and display it in an application or on webpage.
      */
     private String imageUrl;
-
-    /**
-     * The user's role.
-     */
-    private String role;
 }

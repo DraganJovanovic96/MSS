@@ -66,9 +66,10 @@ public class SecurityConfiguration {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeRequests(authorize -> authorize
+                .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/api/v1/auth/**",
+                                "/error",
                                 "/v2/api-docs",
                                 "/v3/api-docs",
                                 "/v3/api-docs/**",
@@ -91,6 +92,9 @@ public class SecurityConfiguration {
                         .requestMatchers(GET, "/api/v1/services").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
                         .requestMatchers(POST, "/api/v1/services").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
                         .requestMatchers(DELETE, "/api/v1/services").hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
+
+                        .requestMatchers("/api/v1/register").hasAnyRole(ADMIN.name())
+                        .requestMatchers(POST,"/api/v1/register").hasAnyAuthority(ADMIN_CREATE.name())
 
                         .requestMatchers("/api/v1/service-types").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(GET, "/api/v1/service-types").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
