@@ -2,6 +2,7 @@ package com.mss.dto;
 
 
 import com.mss.enumeration.Role;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,11 +45,12 @@ public class RegisterRequestDto {
     /**
      * The role of the user.
      */
-    private Role role;
+    private Role role = Role.USER;
 
     /**
      * The mobile number of the user.
      */
+    @NotNull
     private String mobileNumber;
 
     /**

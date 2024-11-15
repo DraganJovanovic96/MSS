@@ -1,5 +1,6 @@
 package com.mss.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -31,5 +32,6 @@ public class CustomerCreateDto {
     /**
      * The customer's phone number.
      */
+    @NotNull
     private String phoneNumber;
 }
