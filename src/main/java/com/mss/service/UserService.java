@@ -3,6 +3,7 @@ package com.mss.service;
 
 import com.mss.dto.LocalStorageUserDto;
 import com.mss.dto.UserDto;
+import com.mss.dto.UserUpdateDto;
 import com.mss.model.User;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -49,6 +50,22 @@ public interface UserService {
      * @return The LocalStorageUserDto object representing the authenticated user with fewer details.
      */
     LocalStorageUserDto getLocalStorageUserDtoFromAuthentication();
+
+    /**
+     * Retrieves the user associated with the current authentication context.
+     *
+     *
+     * @return The UserDto object representing the authenticated user with fewer details.
+     */
+    UserUpdateDto getUserDtoFromAuthentication();
+
+    /**
+     * Update the user associated with the current authentication context.
+     *
+     *
+     * @return The UserUpdateDto object representing the authenticated user details.
+     */
+    UserUpdateDto updateUser(UserUpdateDto userUpdateDto);
 
     /**
      * A method for deleting user. It is implemented in UserServiceImpl class.

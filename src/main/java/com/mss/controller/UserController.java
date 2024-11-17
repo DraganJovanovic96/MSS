@@ -1,12 +1,12 @@
 package com.mss.controller;
 
-import com.mss.dto.LocalStorageUserDto;
-import com.mss.dto.UserDto;
+import com.mss.dto.*;
 import com.mss.mapper.UserMapper;
 import com.mss.service.UserService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -93,5 +93,35 @@ public class UserController {
     public ResponseEntity<List<UserDto>> getVehicles() {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(userService.getAllUsers(false));
+    }
+
+    /**
+     * The endpoint accepts a GET request.
+     * Retrieves the users data for authenticated user.
+     *
+     * @return ResponseEntity<LocalStorageUserDto> containing the users data for the authenticated user.
+     */
+    @GetMapping(value = "/user-details", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
+    @ApiOperation(value = "Get User's data")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "User's data successfully fetched.", response = LocalStorageUserDto.class),
+            @ApiResponse(code = 404, message = "User isn't authenticated.")
+    })
+    public ResponseEntity<UserUpdateDto> getUserInfo() {
+        userService.getUserFromAuthentication();
+        return ResponseEntity.ok(userService.getUserDtoFromAuthentication());
+    }
+
+    @PutMapping(value = "/user-details-update",consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:update', 'user:update')")
+    @ApiOperation(value = "Update user through UserUpdateDto")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully updated user.", response = UserUpdateDto.class),
+            @ApiResponse(code = 404, message = "User is not found.")
+    })
+    public ResponseEntity<UserUpdateDto> updateUser(@Valid @RequestBody UserUpdateDto userUpdateDto) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(userService.updateUser(userUpdateDto));
     }
 }

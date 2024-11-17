@@ -108,6 +108,7 @@ public class SecurityConfiguration {
                         .requestMatchers(PUT, "/api/v1/vehicles").hasAnyAuthority(ADMIN_UPDATE.name(),USER_UPDATE.name())
 
                         .requestMatchers(DELETE, "/api/v1/users").hasAnyAuthority(ADMIN_DELETE.name())
+                        .requestMatchers(PUT, "/api/v1/users").hasAnyAuthority(ADMIN_UPDATE.name(),USER_UPDATE.name())
 
                         .requestMatchers("/api/v1/download-invoice/*").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(GET, "/api/v1/download-invoice/*").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())

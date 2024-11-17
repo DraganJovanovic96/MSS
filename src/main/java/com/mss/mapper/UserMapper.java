@@ -3,6 +3,7 @@ package com.mss.mapper;
 
 import com.mss.dto.LocalStorageUserDto;
 import com.mss.dto.UserDto;
+import com.mss.dto.UserUpdateDto;
 import com.mss.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -26,6 +27,14 @@ public interface UserMapper {
      * @return a UserDto object containing the user's information
      */
     UserDto userToUserDto(User user);
+
+    /**
+     * Maps a User object to a UserDto object.
+     *
+     * @param user the User object to be mapped to a UserDto object
+     * @return a UserDto object containing the user's information
+     */
+    UserUpdateDto userToUserUpdateDto(User user);
 
     /**
      * Maps a UserDto object to a User object.
