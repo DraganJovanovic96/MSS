@@ -100,6 +100,7 @@ public class SecurityConfiguration {
                         .requestMatchers(GET, "/api/v1/service-types").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
                         .requestMatchers(POST, "/api/v1/service-types").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
                         .requestMatchers(DELETE, "/api/v1/service-types").hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
+                        .requestMatchers(PUT, "/api/v1/service-types").hasAnyAuthority(ADMIN_UPDATE.name(),USER_UPDATE.name())
 
                         .requestMatchers("/api/v1/vehicles").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(GET, "/api/v1/vehicles").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())

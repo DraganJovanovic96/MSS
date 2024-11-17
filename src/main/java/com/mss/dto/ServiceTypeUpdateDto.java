@@ -1,6 +1,6 @@
 package com.mss.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -12,7 +12,7 @@ import lombok.Data;
  * @since 1.0
  */
 @Data
-public class ServiceTypeDto extends BaseEntityDto {
+public class ServiceTypeUpdateDto extends BaseEntityDto {
     /**
      * The type of service provided.
      */
@@ -29,8 +29,8 @@ public class ServiceTypeDto extends BaseEntityDto {
     private double price;
 
     /**
-     * Service of service type.
+     * Id of service connected to service type.
      */
-    @JsonIgnoreProperties("serviceTypeDto")
-    private ServiceDto serviceDto;
+    @NotNull
+    private Long serviceId;
 }

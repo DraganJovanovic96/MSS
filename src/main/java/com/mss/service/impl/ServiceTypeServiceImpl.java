@@ -2,6 +2,7 @@ package com.mss.service.impl;
 
 import com.mss.dto.ServiceTypeCreateDto;
 import com.mss.dto.ServiceTypeDto;
+import com.mss.dto.ServiceTypeUpdateDto;
 import com.mss.mapper.ServiceTypeMapper;
 import com.mss.model.Service;
 import com.mss.model.ServiceType;
@@ -13,8 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
 import org.hibernate.Session;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -94,6 +97,33 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
         serviceType.setService(service);
         serviceTypeRepository.save(serviceType);
 
+        return serviceTypeMapper.serviceTypeToServiceTypeDto(serviceType);
+    }
+
+    /**
+     * A method for updating service type. It is implemented in ServiceTypeServiceImpl class.
+     *
+     * @param serviceTypeUpdateDto the DTO containing the data to update the service type
+     * @return the newly updates ServiceType
+     */
+    @Override
+    @Transactional
+    public ServiceTypeDto updateServiceType(ServiceTypeUpdateDto serviceTypeUpdateDto) {
+        ServiceType serviceType = serviceTypeRepository.findOneById(serviceTypeUpdateDto.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Service type with this id doesn't exist"));
+
+        Service service = serviceRepository.findOneById(serviceTypeUpdateDto.getServiceId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Service with this id doesn't exist"));
+
+        serviceType.setUpdatedAt(Instant.now());
+        serviceType.setTypeOfService(serviceTypeUpdateDto.getTypeOfService());
+        serviceType.setDeleted(serviceTypeUpdateDto.getDeleted());
+        serviceType.setDescription(serviceTypeUpdateDto.getDescription());
+        serviceType.setPrice(serviceTypeUpdateDto.getPrice());
+        serviceType.setService(service);
+
+        serviceTypeRepository.save(serviceType);
+        entityManager.flush();
         return serviceTypeMapper.serviceTypeToServiceTypeDto(serviceType);
     }
 

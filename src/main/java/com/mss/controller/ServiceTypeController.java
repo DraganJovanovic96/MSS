@@ -2,6 +2,7 @@ package com.mss.controller;
 
 import com.mss.dto.ServiceTypeCreateDto;
 import com.mss.dto.ServiceTypeDto;
+import com.mss.dto.ServiceTypeUpdateDto;
 import com.mss.service.ServiceTypeService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -109,4 +110,23 @@ public class ServiceTypeController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .build();
     }
+
+    /**
+     * Updates the service type with the information provided in the ServiceTypeUpdateDto.
+     *
+     * @param serviceTypeUpdateDto The ServiceTypeUpdateDto containing the service type information
+     * @return The ResponseEntity containing the updated ServiceTypeDto
+     */
+    @PutMapping(value = "/id/{serviceTypeId}",consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:update', 'user:update')")
+    @ApiOperation(value = "Update service type through ServiceTypeUpdateDto")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully updated service type.", response = ServiceTypeDto.class),
+            @ApiResponse(code = 404, message = "Service type is not found.")
+    })
+    public ResponseEntity<ServiceTypeDto> updateServiceType(@Valid @RequestBody ServiceTypeUpdateDto serviceTypeUpdateDto) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(serviceTypeService.updateServiceType(serviceTypeUpdateDto));
+    }
+
 }

@@ -2,6 +2,7 @@ package com.mss.service;
 
 import com.mss.dto.ServiceTypeCreateDto;
 import com.mss.dto.ServiceTypeDto;
+import com.mss.dto.ServiceTypeUpdateDto;
 
 import java.util.List;
 
@@ -29,6 +30,14 @@ public interface ServiceTypeService {
      * @return the newly created ServiceType
      */
     ServiceTypeDto saveServiceType(ServiceTypeCreateDto serviceTypeCreateDto);
+
+    /**
+     * A method for updating service type. It is implemented in ServiceTypeServiceImpl class.
+     *
+     * @param serviceTypeUpdateDto the DTO containing the data to update the service type
+     * @return the newly updates ServiceType
+     */
+    ServiceTypeDto updateServiceType(ServiceTypeUpdateDto serviceTypeUpdateDto);
 
     /**
      * Finds a service type by their unique identifier.
