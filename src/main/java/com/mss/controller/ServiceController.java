@@ -130,7 +130,7 @@ public class ServiceController {
     public ResponseEntity<List<ServiceDto>> getServices(@RequestBody(required = false) ServiceFiltersQueryDto serviceFiltersQueryDto,
                                                         @RequestParam(value = "page", defaultValue = "0") int page,
                                                         @RequestParam(value = "pageSize", defaultValue = "5") int pageSize) {
-        Page<ServiceDto> resultPage = serviceService.findFilteredServices(false, serviceFiltersQueryDto, page, pageSize);
+        Page<ServiceDto> resultPage = serviceService.findFilteredServices(serviceFiltersQueryDto.isDeleted(), serviceFiltersQueryDto, page, pageSize);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Total-Items", String.valueOf(resultPage.getTotalElements()));

@@ -149,7 +149,7 @@ public class VehicleControllers {
     public ResponseEntity<List<VehicleDto>> getVehicles(@RequestBody(required = false) VehicleFiltersQueryDto vehicleFiltersQueryDto,
                                                           @RequestParam(value = "page", defaultValue = "0") int page,
                                                           @RequestParam(value = "pageSize", defaultValue = "5") int pageSize) {
-        Page<VehicleDto> resultPage = vehicleService.findFilteredVehicles(false, vehicleFiltersQueryDto, page, pageSize);
+        Page<VehicleDto> resultPage = vehicleService.findFilteredVehicles(vehicleFiltersQueryDto.isDeleted(), vehicleFiltersQueryDto, page, pageSize);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Total-Items", String.valueOf(resultPage.getTotalElements()));

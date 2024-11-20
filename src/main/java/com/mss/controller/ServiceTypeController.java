@@ -1,14 +1,14 @@
 package com.mss.controller;
 
-import com.mss.dto.ServiceTypeCreateDto;
-import com.mss.dto.ServiceTypeDto;
-import com.mss.dto.ServiceTypeUpdateDto;
+import com.mss.dto.*;
 import com.mss.service.ServiceTypeService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -127,6 +127,34 @@ public class ServiceTypeController {
     public ResponseEntity<ServiceTypeDto> updateServiceType(@Valid @RequestBody ServiceTypeUpdateDto serviceTypeUpdateDto) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(serviceTypeService.updateServiceType(serviceTypeUpdateDto));
+    }
+
+    /**
+     * The getServiceTypes method is a REST endpoint that returns a ResponseEntity containing a List of ServiceTypeDto.
+     * This method accepts an optional serviceTypeFiltersQueryDto object as a request body, which contains the query attributes for filtering Service Type entities.
+     * It also accepts an optional pageNo parameter as a query parameter, which specifies the page number to retrieve, and numberOfResultsPerPage
+     * which specifies number of results per page.
+     *
+     * @param serviceTypeFiltersQueryDto contains parameters based on data will be filtered
+     * @param page                    number of wanted page
+     * @param pageSize                number of wanted results per page
+     * @return ResponseEntity<List> - The HTTP response containing a list of {@link ServiceTypeDto} objects as the response body
+     */
+    @PostMapping("/search")
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
+    @ApiOperation(value = "Get all/filtered Service Types")
+    @ApiResponse(code = 200, message = "Requests data successfully fetched.")
+    public ResponseEntity<List<ServiceTypeDto>> getServiceTypes(@RequestBody(required = false) ServiceTypeFiltersQueryDto serviceTypeFiltersQueryDto,
+                                                        @RequestParam(value = "page", defaultValue = "0") int page,
+                                                        @RequestParam(value = "pageSize", defaultValue = "5") int pageSize) {
+        Page<ServiceTypeDto> resultPage = serviceTypeService.findFilteredServiceTypes(serviceTypeFiltersQueryDto.isDeleted(), serviceTypeFiltersQueryDto, page, pageSize);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Total-Items", String.valueOf(resultPage.getTotalElements()));
+        headers.add("X-Total-Pages", String.valueOf(resultPage.getTotalPages()));
+        headers.add("X-Current-Page", String.valueOf(resultPage.getNumber()));
+
+        return new ResponseEntity<>(resultPage.getContent(), headers, HttpStatus.OK);
     }
 
 }

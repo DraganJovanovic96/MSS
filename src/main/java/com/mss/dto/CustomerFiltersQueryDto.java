@@ -36,6 +36,12 @@ public class CustomerFiltersQueryDto {
     private String phoneNumber;
 
     /**
+     * The customer deletion status.
+     */
+    @JsonProperty("isDeleted")
+    private boolean isDeleted;
+
+    /**
      * The customer's vehicles.
      */
     @JsonProperty("vehicleIds")

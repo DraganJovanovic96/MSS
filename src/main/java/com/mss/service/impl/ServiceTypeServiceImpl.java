@@ -2,17 +2,22 @@ package com.mss.service.impl;
 
 import com.mss.dto.ServiceTypeCreateDto;
 import com.mss.dto.ServiceTypeDto;
+import com.mss.dto.ServiceTypeFiltersQueryDto;
 import com.mss.dto.ServiceTypeUpdateDto;
 import com.mss.mapper.ServiceTypeMapper;
 import com.mss.model.Service;
 import com.mss.model.ServiceType;
 import com.mss.repository.ServiceRepository;
+import com.mss.repository.ServiceTypeCustomRepository;
 import com.mss.repository.ServiceTypeRepository;
 import com.mss.service.ServiceTypeService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
 import org.hibernate.Session;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -36,6 +41,11 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
      * The repository used to retrieve service type data.
      */
     private final ServiceTypeRepository serviceTypeRepository;
+
+    /**
+     * The repository used to retrieve service type data.
+     */
+    private final ServiceTypeCustomRepository serviceTypeCustomRepository;
 
     /**
      * The repository used to retrieve service data.
@@ -167,5 +177,32 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service Type is not found."));
 
         serviceTypeRepository.deleteById(serviceTypeId);
+    }
+
+    /**
+     * This method first calls the serviceTypeRepository's findFilteredServiceTypes method
+     * to retrieve a Page of Service Types objects that match the query.
+     * It then iterates over the Service Types objects and retrieves the associated Services objects.
+     *
+     * @param isDeleted                  boolean representing deleted objects
+     * @param serviceTypeFiltersQueryDto {@link ServiceTypeFiltersQueryDto} object which contains query parameters
+     * @param page                       int number of wanted page
+     * @param pageSize                   number of results per page
+     * @return a Page of ServiceDto objects that match the specified query
+     */
+    @Override
+    public Page<ServiceTypeDto> findFilteredServiceTypes(boolean isDeleted, ServiceTypeFiltersQueryDto serviceTypeFiltersQueryDto, Integer page, Integer pageSize) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_TYPE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+
+        Page<ServiceType> resultPage = serviceTypeCustomRepository.findFilteredServiceTypes(serviceTypeFiltersQueryDto, PageRequest.of(page, pageSize));
+        List<ServiceType> serviceTypes = resultPage.getContent();
+
+        session.disableFilter(SERVICE_TYPE_FILTER);
+
+        List<ServiceTypeDto> serviceTypeDtos = serviceTypeMapper.serviceTypesToServiceTypeDtos(serviceTypes);
+
+        return new PageImpl<>(serviceTypeDtos, resultPage.getPageable(), resultPage.getTotalElements());
     }
 }

@@ -34,6 +34,13 @@ public class VehicleFiltersQueryDto {
     private String vehiclePlate;
 
     /**
+     * The vehicles deletion status.
+     */
+    @JsonProperty("isDeleted")
+    private boolean isDeleted;
+
+
+    /**
      * The vehicle's vin.
      */
     @JsonProperty("vin")

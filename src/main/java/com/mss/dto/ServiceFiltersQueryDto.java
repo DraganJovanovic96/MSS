@@ -24,6 +24,13 @@ public class ServiceFiltersQueryDto {
     private String invoiceCode;
 
     /**
+     * The services deletion status.
+     */
+    @JsonProperty("isDeleted")
+    private boolean isDeleted;
+
+
+    /**
      * Query attribute for Service's start date.
      */
     @JsonProperty("startDate")

@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,7 +59,14 @@ public class PdfServiceImpl implements PdfService {
         Service service = serviceRepository.findOneById(serviceId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service with that id doesn't exist"));
         Customer customer = service.getVehicle().getCustomer();
-        List<ServiceType> serviceTypes = service.getServiceTypes();
+        List<ServiceType> allServiceTypes = service.getServiceTypes();
+        List<ServiceType> serviceTypes = new ArrayList<>();
+
+        for (ServiceType serviceType: allServiceTypes) {
+            if(!serviceType.getDeleted()) {
+                serviceTypes.add(serviceType);
+            }
+        }
 
         float totalPrice = calculateTotalPrice(serviceTypes);
 
