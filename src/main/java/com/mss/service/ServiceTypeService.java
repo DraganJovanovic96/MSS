@@ -1,7 +1,7 @@
 package com.mss.service;
 
-import com.mss.dto.ServiceTypeCreateDto;
-import com.mss.dto.ServiceTypeDto;
+import com.mss.dto.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -31,6 +31,14 @@ public interface ServiceTypeService {
     ServiceTypeDto saveServiceType(ServiceTypeCreateDto serviceTypeCreateDto);
 
     /**
+     * A method for updating service type. It is implemented in ServiceTypeServiceImpl class.
+     *
+     * @param serviceTypeUpdateDto the DTO containing the data to update the service type
+     * @return the newly updates ServiceType
+     */
+    ServiceTypeDto updateServiceType(ServiceTypeUpdateDto serviceTypeUpdateDto);
+
+    /**
      * Finds a service type by their unique identifier.
      *
      * @param serviceTypeId the unique identifier of the service type to retrieve
@@ -44,4 +52,17 @@ public interface ServiceTypeService {
      * @param serviceTypeId parameter that is unique to entity
      */
     void deleteServiceType(Long serviceTypeId);
+
+    /**
+     * This method first calls the serviceTypeRepository's findFilteredServiceTypes method
+     * to retrieve a Page of Service Types objects that match the query.
+     * It then iterates over the Service Types objects and retrieves the associated Services objects.
+     *
+     * @param serviceTypeFiltersQueryDto {@link ServiceTypeFiltersQueryDto} object which contains query parameters
+     * @param isDeleted              boolean representing deleted objects
+     * @param page                   int number of wanted page
+     * @param pageSize               number of results per page
+     * @return a Page of ServiceDto objects that match the specified query
+     */
+    Page<ServiceTypeDto> findFilteredServiceTypes(boolean isDeleted, ServiceTypeFiltersQueryDto serviceTypeFiltersQueryDto, Integer page, Integer pageSize);
 }

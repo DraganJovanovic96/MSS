@@ -2,6 +2,7 @@ package com.mss.service.impl;
 
 import com.mss.dto.LocalStorageUserDto;
 import com.mss.dto.UserDto;
+import com.mss.dto.UserUpdateDto;
 import com.mss.enumeration.Role;
 import com.mss.mapper.UserMapper;
 import com.mss.model.User;
@@ -9,7 +10,6 @@ import com.mss.repository.TokenRepository;
 import com.mss.repository.UserRepository;
 import com.mss.service.UserService;
 import jakarta.persistence.EntityManager;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
 import org.hibernate.Session;
@@ -18,8 +18,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -123,6 +125,51 @@ public class UserServiceImpl implements UserService {
             String email = userDetails.getUsername();
             User user = findOneByEmail(email);
             return userMapper.userToLocalStorageUserDto(user);
+        } else {
+            throw new RuntimeException("Authentication object does not contain user details");
+        }
+    }
+
+    /**
+     * Retrieves the user associated with the current authentication context.
+     *
+     * @return The UserDto object representing the authenticated user.
+     */
+    @Override
+    public UserUpdateDto getUserDtoFromAuthentication() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String email = userDetails.getUsername();
+            User user = findOneByEmail(email);
+            return userMapper.userToUserUpdateDto(user);
+        } else {
+            throw new RuntimeException("Authentication object does not contain user details");
+        }
+    }
+
+    /**
+     * Update the user associated with the current authentication context.
+     *
+     * @return The UserUpdateDto object representing the authenticated user with fewer details.
+     */
+    @Override
+    public UserUpdateDto updateUser(UserUpdateDto userUpdateDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String email = userDetails.getUsername();
+            User user = findOneByEmail(email);
+            user.setUpdatedAt(Instant.now());
+            user.setFirstname(userUpdateDto.getFirstname());
+            user.setLastname(userUpdateDto.getLastname());
+            user.setEmail(userUpdateDto.getEmail());
+            user.setImageUrl(userUpdateDto.getImageUrl());
+            user.setMobileNumber(userUpdateDto.getMobileNumber());
+            user.setDateOfBirth(userUpdateDto.getDateOfBirth());
+            user.setAddress(userUpdateDto.getAddress());
+            userRepository.save(user);
+            return userMapper.userToUserUpdateDto(user);
         } else {
             throw new RuntimeException("Authentication object does not contain user details");
         }

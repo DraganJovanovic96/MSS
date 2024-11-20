@@ -152,7 +152,7 @@ public class CustomerController {
     public ResponseEntity<List<CustomerDto>> getCustomers(@RequestBody(required = false) CustomerFiltersQueryDto customerFiltersQueryDto,
                                                           @RequestParam(value = "page", defaultValue = "0") int page,
                                                           @RequestParam(value = "pageSize", defaultValue = "5") int pageSize) {
-        Page<CustomerDto> resultPage = customerService.findFilteredCustomers(false, customerFiltersQueryDto, page, pageSize);
+        Page<CustomerDto> resultPage = customerService.findFilteredCustomers(customerFiltersQueryDto.isDeleted(), customerFiltersQueryDto, page, pageSize);
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Total-Items", String.valueOf(resultPage.getTotalElements()));

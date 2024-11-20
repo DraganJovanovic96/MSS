@@ -2,19 +2,27 @@ package com.mss.service.impl;
 
 import com.mss.dto.ServiceTypeCreateDto;
 import com.mss.dto.ServiceTypeDto;
+import com.mss.dto.ServiceTypeFiltersQueryDto;
+import com.mss.dto.ServiceTypeUpdateDto;
 import com.mss.mapper.ServiceTypeMapper;
 import com.mss.model.Service;
 import com.mss.model.ServiceType;
 import com.mss.repository.ServiceRepository;
+import com.mss.repository.ServiceTypeCustomRepository;
 import com.mss.repository.ServiceTypeRepository;
 import com.mss.service.ServiceTypeService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
 import org.hibernate.Session;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -33,6 +41,11 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
      * The repository used to retrieve service type data.
      */
     private final ServiceTypeRepository serviceTypeRepository;
+
+    /**
+     * The repository used to retrieve service type data.
+     */
+    private final ServiceTypeCustomRepository serviceTypeCustomRepository;
 
     /**
      * The repository used to retrieve service data.
@@ -98,6 +111,33 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
     }
 
     /**
+     * A method for updating service type. It is implemented in ServiceTypeServiceImpl class.
+     *
+     * @param serviceTypeUpdateDto the DTO containing the data to update the service type
+     * @return the newly updates ServiceType
+     */
+    @Override
+    @Transactional
+    public ServiceTypeDto updateServiceType(ServiceTypeUpdateDto serviceTypeUpdateDto) {
+        ServiceType serviceType = serviceTypeRepository.findOneById(serviceTypeUpdateDto.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Service type with this id doesn't exist"));
+
+        Service service = serviceRepository.findOneById(serviceTypeUpdateDto.getServiceId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Service with this id doesn't exist"));
+
+        serviceType.setUpdatedAt(Instant.now());
+        serviceType.setTypeOfService(serviceTypeUpdateDto.getTypeOfService());
+        serviceType.setDeleted(serviceTypeUpdateDto.getDeleted());
+        serviceType.setDescription(serviceTypeUpdateDto.getDescription());
+        serviceType.setPrice(serviceTypeUpdateDto.getPrice());
+        serviceType.setService(service);
+
+        serviceTypeRepository.save(serviceType);
+        entityManager.flush();
+        return serviceTypeMapper.serviceTypeToServiceTypeDto(serviceType);
+    }
+
+    /**
      * A method for retrieving Service Type entity from the database using id.
      * In case that service type doesn't exist we get ResponseStatusException.NOT_FOUND.
      *
@@ -137,5 +177,32 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service Type is not found."));
 
         serviceTypeRepository.deleteById(serviceTypeId);
+    }
+
+    /**
+     * This method first calls the serviceTypeRepository's findFilteredServiceTypes method
+     * to retrieve a Page of Service Types objects that match the query.
+     * It then iterates over the Service Types objects and retrieves the associated Services objects.
+     *
+     * @param isDeleted                  boolean representing deleted objects
+     * @param serviceTypeFiltersQueryDto {@link ServiceTypeFiltersQueryDto} object which contains query parameters
+     * @param page                       int number of wanted page
+     * @param pageSize                   number of results per page
+     * @return a Page of ServiceDto objects that match the specified query
+     */
+    @Override
+    public Page<ServiceTypeDto> findFilteredServiceTypes(boolean isDeleted, ServiceTypeFiltersQueryDto serviceTypeFiltersQueryDto, Integer page, Integer pageSize) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_TYPE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+
+        Page<ServiceType> resultPage = serviceTypeCustomRepository.findFilteredServiceTypes(serviceTypeFiltersQueryDto, PageRequest.of(page, pageSize));
+        List<ServiceType> serviceTypes = resultPage.getContent();
+
+        session.disableFilter(SERVICE_TYPE_FILTER);
+
+        List<ServiceTypeDto> serviceTypeDtos = serviceTypeMapper.serviceTypesToServiceTypeDtos(serviceTypes);
+
+        return new PageImpl<>(serviceTypeDtos, resultPage.getPageable(), resultPage.getTotalElements());
     }
 }
