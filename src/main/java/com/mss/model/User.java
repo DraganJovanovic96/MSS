@@ -17,6 +17,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -83,6 +84,24 @@ public class User extends BaseEntity<Long> implements UserDetails {
     private String address;
 
     /**
+     * The user's verification status.
+     */
+    @Column
+    private boolean enabled;
+
+    /**
+     * The user's verification code.
+     */
+    @Column(name = "verification_code")
+    private String verificationCode;
+
+    /**
+     * The user's verification code expiration.
+     */
+    @Column(name = "verification_expiration")
+    private LocalDateTime verificationExpiration;
+
+    /**
      * This variable stores a 'String' that contains the URL of an image file.
      * The URL can be used to retrieve the image and display it in an application or on webpage.
      */
@@ -139,6 +158,6 @@ public class User extends BaseEntity<Long> implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 }
