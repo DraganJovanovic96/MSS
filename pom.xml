@@ -108,6 +108,12 @@
 			<version>1.6.8</version>
 		</dependency>
 
+		<!--    Mail dependencies    -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
 		<!--    Mapper dependencies    -->
 		<dependency>
 			<groupId>org.mapstruct</groupId>
