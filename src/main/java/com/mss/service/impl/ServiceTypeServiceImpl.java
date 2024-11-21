@@ -142,19 +142,12 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
      * In case that service type doesn't exist we get ResponseStatusException.NOT_FOUND.
      *
      * @param serviceTypeId used to find Service Type by id
-     * @param isDeleted     used to check if object is softly deleted
      * @return {@link ServiceTypeDto} which contains info about specific service type
      */
     @Override
-    public ServiceTypeDto findServiceTypeById(Long serviceTypeId, boolean isDeleted) {
-        Session session = entityManager.unwrap(Session.class);
-        Filter filter = session.enableFilter(SERVICE_TYPE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
-
+    public ServiceTypeDto findServiceTypeById(Long serviceTypeId) {
         ServiceType serviceType = serviceTypeRepository.findOneById(serviceTypeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service type with this id doesn't exist"));
-
-        session.disableFilter(SERVICE_TYPE_FILTER);
 
         return serviceTypeMapper.serviceTypeToServiceTypeDto(serviceType);
     }
