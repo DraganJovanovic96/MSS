@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 /**
- * Data Transfer Object (DTO) representing an register request.
+ * Data Transfer Object (DTO) representing a register request.
  *
  * @author Dragan Jovanovic
  * @version 1.0

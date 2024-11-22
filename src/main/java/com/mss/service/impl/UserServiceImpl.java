@@ -1,6 +1,7 @@
 package com.mss.service.impl;
 
 import com.mss.dto.LocalStorageUserDto;
+import com.mss.dto.PasswordChangeDto;
 import com.mss.dto.UserDto;
 import com.mss.dto.UserUpdateDto;
 import com.mss.enumeration.Role;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -50,6 +52,11 @@ public class UserServiceImpl implements UserService {
      * The mapper used to map user data.
      */
     private final UserMapper userMapper;
+
+    /**
+     * Service interface for encoding passwords. The preferred implementation is BCryptPasswordEncoder.
+     */
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Created USER_FILTER attribute, so we can change Filter easily if needed.
@@ -170,6 +177,33 @@ public class UserServiceImpl implements UserService {
             user.setAddress(userUpdateDto.getAddress());
             userRepository.save(user);
             return userMapper.userToUserUpdateDto(user);
+        } else {
+            throw new RuntimeException("Authentication object does not contain user details");
+        }
+    }
+
+    /**
+     * Update the user associated with the current authentication context.
+     *
+     * @param passwordChangeDto
+     */
+    @Override
+    public void changePassword(PasswordChangeDto passwordChangeDto) {
+        if (!passwordChangeDto.getNewPassword().equals(passwordChangeDto.getRepeatNewPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New passwords don't match");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String email = userDetails.getUsername();
+            User user = findOneByEmail(email);
+
+            if (!passwordEncoder.matches(passwordChangeDto.getPassword(), user.getPassword())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect password");
+            }
+            user.setPassword(passwordEncoder.encode(passwordChangeDto.getNewPassword()));
+            userRepository.save(user);
         } else {
             throw new RuntimeException("Authentication object does not contain user details");
         }

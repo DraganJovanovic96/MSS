@@ -2,6 +2,7 @@ package com.mss.service;
 
 
 import com.mss.dto.LocalStorageUserDto;
+import com.mss.dto.PasswordChangeDto;
 import com.mss.dto.UserDto;
 import com.mss.dto.UserUpdateDto;
 import com.mss.model.User;
@@ -66,6 +67,12 @@ public interface UserService {
      * @return The UserUpdateDto object representing the authenticated user details.
      */
     UserUpdateDto updateUser(UserUpdateDto userUpdateDto);
+
+    /**
+     * Update the user associated with the current authentication context.
+     *
+     */
+    void changePassword(PasswordChangeDto passwordChangeDto);
 
     /**
      * A method for deleting user. It is implemented in UserServiceImpl class.
