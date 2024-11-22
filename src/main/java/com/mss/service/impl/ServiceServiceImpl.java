@@ -93,6 +93,19 @@ public class ServiceServiceImpl implements ServiceService {
     private final EntityManager entityManager;
 
     /**
+     * Counts the number of services based on their deletion status.
+     *
+     * @param isDeleted A boolean indicating the deletion status of services to be counted.
+     *                  If {@code true}, counts only deleted services.
+     *                  If {@code false}, counts only active services.
+     * @return The total number of services matching the specified deletion status.
+     */
+    @Override
+    public long getServiceCount(boolean isDeleted) {
+        return serviceRepository.countServicesByDeleted(isDeleted);
+    }
+
+    /**
      * Retrieves a list of all services that are not deleted.
      *
      * @return A list of ServiceDto objects representing the services.

@@ -1,10 +1,7 @@
 package com.mss.controller;
 
 
-import com.mss.dto.AuthenticationRequestDto;
-import com.mss.dto.AuthenticationResponseDto;
-import com.mss.dto.VehicleDto;
-import com.mss.dto.VerifyUserDto;
+import com.mss.dto.*;
 import com.mss.service.impl.AuthenticationService;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -82,16 +79,17 @@ public class AuthenticationController {
     /**
      * Resends the verification code to the user's email.
      *
-     * @param userEmail the email address of the user to whom the verification code should be sent
+     * @param emailRequestDto the email address of the user to whom the verification code should be sent
      * @return a {@link ResponseEntity} containing a success message if the code was sent successfully,
      * or an error message if the operation fails
      * @throws RuntimeException if an error occurs while resending the verification code
      */
     @PostMapping("/resend-verification")
-    public ResponseEntity<?> reVerifyUser(@RequestParam String userEmail) {
+    public ResponseEntity<?> reVerifyUser(@RequestBody EmailRequestDto emailRequestDto) {
         try {
-            service.resendVerificationCode(userEmail);
-            return ResponseEntity.ok("Verification code sent");
+            service.resendVerificationCode(emailRequestDto.getEmail());
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body("Verification code sent");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

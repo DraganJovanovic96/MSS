@@ -32,6 +32,16 @@ public interface CustomerService {
     List<CustomerDto> getAllCustomers(boolean isDeleted);
 
     /**
+     * Counts the number of customers based on their deletion status.
+     *
+     * @param isDeleted A boolean indicating the deletion status of customers to be counted.
+     *                  If {@code true}, counts only deleted customers.
+     *                  If {@code false}, counts only active customers.
+     * @return The total number of customers matching the specified deletion status.
+     */
+     long getCustomerCount(boolean isDeleted);
+
+    /**
      * A method for saving customer. It is implemented in CustomerServiceImpl class.
      *
      * @param customerCreateDto the DTO containing the data to create the new customer

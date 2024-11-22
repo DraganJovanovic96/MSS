@@ -238,7 +238,7 @@ public class AuthenticationService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " User doesn't exist"));
 
         if (user.isEnabled()) {
-            throw new RuntimeException("User is already verified");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, " User is already verified");
         }
 
         user.setVerificationCode(generateVerificationCode());

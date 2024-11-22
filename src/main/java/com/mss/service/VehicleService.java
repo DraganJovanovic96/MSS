@@ -17,6 +17,15 @@ import java.util.List;
  * @since 1.0
  */
 public interface VehicleService {
+    /**
+     * Counts the number of vehicles based on their deletion status.
+     *
+     * @param isDeleted A boolean indicating the deletion status of vehicles to be counted.
+     *                  If {@code true}, counts only deleted vehicles.
+     *                  If {@code false}, counts only active vehicles.
+     * @return The total number of vehicles matching the specified deletion status.
+     */
+    long getVehicleCount(boolean isDeleted);
 
     /**
      * A method for retrieving all vehicles implemented in VehicleServiceImpl class.

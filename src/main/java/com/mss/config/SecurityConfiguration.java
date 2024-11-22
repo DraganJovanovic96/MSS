@@ -114,6 +114,9 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/download-invoice/*").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(GET, "/api/v1/download-invoice/*").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
 
+                        .requestMatchers("/api/v1/dashboard").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, "/api/v1/dashboard").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
+
                         .anyRequest()
                         .authenticated()
                 )
