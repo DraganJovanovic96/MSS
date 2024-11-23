@@ -130,6 +130,8 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
         serviceType.setDeleted(serviceTypeUpdateDto.getDeleted());
         serviceType.setDescription(serviceTypeUpdateDto.getDescription());
         serviceType.setPrice(serviceTypeUpdateDto.getPrice());
+        serviceType.setPartCode(serviceTypeUpdateDto.getPartCode());
+        serviceType.setQuantity(serviceTypeUpdateDto.getQuantity());
         serviceType.setService(service);
 
         serviceTypeRepository.save(serviceType);
