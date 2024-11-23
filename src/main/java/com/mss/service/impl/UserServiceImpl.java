@@ -12,8 +12,6 @@ import com.mss.repository.UserRepository;
 import com.mss.service.UserService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Filter;
-import org.hibernate.Session;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,6 +52,11 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     /**
+     * The mapper used to map user data.
+     */
+    private final AuthenticationService authService;
+
+    /**
      * Service interface for encoding passwords. The preferred implementation is BCryptPasswordEncoder.
      */
     private final PasswordEncoder passwordEncoder;
@@ -91,11 +94,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public List<UserDto> getAllUsers(boolean isDeleted) {
-        Session session = entityManager.unwrap(Session.class);
-        Filter filter = session.enableFilter(USER_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
         List<User> users = userRepository.findAll();
-        session.disableFilter(USER_FILTER);
 
         return userMapper.usersToUserDtos(users);
     }
@@ -228,6 +227,7 @@ public class UserServiceImpl implements UserService {
                     }
 
                     user.setRole(null);
+
                     user.setEmail("DELETED" + user.getEmail());
                     user.getTokens().forEach(token -> {
                         tokenRepository.permanentlyDeleteTokenById(token.getId());

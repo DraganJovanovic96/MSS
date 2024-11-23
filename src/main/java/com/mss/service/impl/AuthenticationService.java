@@ -2,10 +2,7 @@ package com.mss.service.impl;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mss.dto.AuthenticationRequestDto;
-import com.mss.dto.AuthenticationResponseDto;
-import com.mss.dto.RegisterRequestDto;
-import com.mss.dto.VerifyUserDto;
+import com.mss.dto.*;
 import com.mss.enumeration.TokenType;
 import com.mss.model.Token;
 import com.mss.model.User;
@@ -84,7 +81,7 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .build();
-        user.setVerificationCode(generateVerificationCode());
+        user.setVerificationCode(passwordEncoder.encode(generateVerificationCode()));
         user.setVerificationExpiration(LocalDateTime.now().plusHours(3));
         user.setEnabled(false);
         sendVerificationEmail(user);
@@ -92,6 +89,43 @@ public class AuthenticationService {
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
         saveUserToken(savedUser, jwtToken);
+        return AuthenticationResponseDto.builder()
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    public void setPasswordResetCode(EmailRequestDto emailRequestDto) {
+        User user = repository.findByEmail(emailRequestDto.getEmail())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " User doesn't exist"));
+        user.setPasswordCode(passwordEncoder.encode(generateVerificationCode()));
+        user.setPasswordCodeExpiration(LocalDateTime.now().plusMinutes(10));
+        revokeAllUserTokens(user);
+        repository.save(user);
+    }
+
+    public AuthenticationResponseDto resetPassword(String passwordCode, PasswordResetDto passwordResetDto) {
+        User user = repository.findOneByPasswordCode(passwordCode)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " User doesn't exist"));
+
+        if (user.getPasswordCodeExpiration().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.GONE, " Password link has expired");
+        }
+
+        if (!passwordResetDto.getNewPassword().equals(passwordResetDto.getRepeatNewPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New passwords don't match");
+        }
+
+        user.setPassword(passwordEncoder.encode(passwordResetDto.getNewPassword()));
+        user.setPasswordCode(null);
+        user.setPasswordCodeExpiration(null);
+        repository.save(user);
+
+        var jwtToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+        revokeAllUserTokens(user);
+        saveUserToken(user, jwtToken);
+
         return AuthenticationResponseDto.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
@@ -199,8 +233,8 @@ public class AuthenticationService {
         }
     }
 
-    public AuthenticationResponseDto verifyUser(VerifyUserDto verifyUserDto) {
-        User user = repository.findByEmail(verifyUserDto.getEmail())
+    public AuthenticationResponseDto verifyUser(String token) {
+        User user = repository.findOneByVerificationCode(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " User doesn't exist"));
 
         if (user.isEnabled()) {
@@ -208,29 +242,23 @@ public class AuthenticationService {
         }
 
         if (user.getVerificationExpiration().isBefore(LocalDateTime.now())) {
-            if (user.getVerificationExpiration().isBefore(LocalDateTime.now())) {
-                throw new ResponseStatusException(HttpStatus.GONE, " Verification code has expired");
-            }
+            throw new ResponseStatusException(HttpStatus.GONE, " Verification code has expired");
         }
 
-        if (user.getVerificationCode().equals(verifyUserDto.getVerificationCode())) {
-            user.setEnabled(true);
-            user.setVerificationCode(null);
-            user.setVerificationExpiration(null);
-            repository.save(user);
+        user.setEnabled(true);
+        user.setVerificationCode(null);
+        user.setVerificationExpiration(null);
+        repository.save(user);
 
-            var jwtToken = jwtService.generateToken(user);
-            var refreshToken = jwtService.generateRefreshToken(user);
-            revokeAllUserTokens(user);
-            saveUserToken(user, jwtToken);
+        var jwtToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+        revokeAllUserTokens(user);
+        saveUserToken(user, jwtToken);
 
-            return AuthenticationResponseDto.builder()
-                    .accessToken(jwtToken)
-                    .refreshToken(refreshToken)
-                    .build();
-        } else {
-            throw new RuntimeException("Invalid verification code");
-        }
+        return AuthenticationResponseDto.builder()
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     public void resendVerificationCode(String email) {
@@ -241,7 +269,7 @@ public class AuthenticationService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, " User is already verified");
         }
 
-        user.setVerificationCode(generateVerificationCode());
+        user.setVerificationCode(passwordEncoder.encode(generateVerificationCode()));
         user.setVerificationExpiration(LocalDateTime.now().plusHours(3));
         sendVerificationEmail(user);
         repository.save(user);
@@ -249,7 +277,10 @@ public class AuthenticationService {
 
     public void sendVerificationEmail(User user) {
         String subject = "MSS Account Verification";
+
         String verificationCode = user.getVerificationCode();
+        String verificationLink = "http://localhost:4200/verify?token=" + verificationCode;
+
         String htmlMessage = """
                 <!DOCTYPE html>
                 <html lang="en">
@@ -329,11 +360,11 @@ public class AuthenticationService {
                     </div>
                     <div class="email-body">
                       <h1>Verify Your Email Address</h1>
-                      <p>Thank you for signing up! Please use the verification code below to complete your registration:</p>
-                      <div class="verification-code">
-                """ + verificationCode + """
+                      <p>Thank you for signing up! Please click the verification button below to complete your registration:</p>
+                      <div>
+                        <a href="%s" style="display: block; text-align: center; background-color: #007bff; color: #ffffff; padding: 12px 20px; text-decoration: none; font-size: 18px; border-radius: 5px;">Verify User</a>
                       </div>
-                      <p>If you did not sign up for this account, please ignore this email or contact support if you have questions.</p>
+                      <p>If you believe you got this email by mistake, please ignore this email or contact support if you have any questions.</p>
                     </div>
                     <div class="email-footer">
                       <p>Need help? Contact us at <a href="mailto:support@mss.com">support@mss.com</a></p>
@@ -342,12 +373,57 @@ public class AuthenticationService {
                   </div>
                 </body>
                 </html>
-                """;
+                """.formatted(verificationLink);
 
         try {
             emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
         } catch (MessagingException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void sendResetPasswordLink(String email) {
+        User user = repository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User doesn't exist"));
+
+        String resetToken = user.getPasswordCode();
+        String resetLink = "http://localhost:4200/reset-password?token=" + resetToken;
+
+        String subject = "MSS Password Reset";
+
+        String htmlMessage = """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Password Reset</title>
+                </head>
+                <body style="font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px;">
+                  <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 8px; border: 1px solid #dddddd; overflow: hidden;">
+                    <div style="background-color: #2c2b29; text-align: center; padding: 20px;">
+                      <img src="https://i.imghippo.com/files/pQi9349bTk.png" alt="Logo" style="max-width: 150px;">
+                    </div>
+                    <div style="padding: 20px;">
+                      <h1 style="color: #333333; font-size: 24px;">Password Reset</h1>
+                      <p style="color: #555555; font-size: 16px; line-height: 1.5;">Oops, it seems you have forgotten your password for <strong>%s</strong>. No worries, you can reset it by clicking:</p>
+                      <a href="%s" style="display: block; text-align: center; background-color: #007bff; color: #ffffff; padding: 12px 20px; text-decoration: none; font-size: 18px; border-radius: 5px;">Reset Password</a>
+                      <p style="color: #555555; font-size: 14px; line-height: 1.5;">If you did not request a change of password, please ignore this email.</p>
+                    </div>
+                    <div style="text-align: center; background-color: #f8f9fa; padding: 10px; color: #6c757d; font-size: 14px;">
+                      <p>Need help? Contact us at <a href="mailto:support@mss.com" style="color: #007bff; text-decoration: none;">support@mss.com</a></p>
+                      <p>&copy; 2024 MSS. All rights reserved.</p>
+                    </div>
+                  </div>
+                </body>
+                </html>
+                """.formatted(email, resetLink);
+
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to send email");
         }
     }
 

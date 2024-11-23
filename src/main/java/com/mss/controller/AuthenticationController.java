@@ -66,14 +66,14 @@ public class AuthenticationController {
     /**
      * Verifies a user's account using a verification code.
      *
-     * @param verifyUserDto the data transfer object containing the verification code and user details
+     * @param token verification code of the user.
      * @return a {@link ResponseEntity} containing an {@link AuthenticationResponseDto} with the verification status
      * @throws ResponseStatusException if the verification code is invalid, expired, or if the user is already verified
      */
     @PostMapping("/verification")
-    public ResponseEntity<AuthenticationResponseDto> verifyUser(@RequestBody VerifyUserDto verifyUserDto) {
+    public ResponseEntity<AuthenticationResponseDto> verifyUser(@RequestParam String token) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(service.verifyUser(verifyUserDto));
+                .body(service.verifyUser(token));
     }
 
     /**
@@ -93,5 +93,46 @@ public class AuthenticationController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    /**
+     * Resends the verification code to the user's email.
+     *
+     * @param emailRequestDto the email address of the user to whom the verification code should be sent
+     * @return a {@link ResponseEntity} containing a success message if the code was sent successfully,
+     * or an error message if the operation fails
+     * @throws RuntimeException if an error occurs while resending the verification code
+     */
+    @PostMapping("/send-reset-password")
+    public ResponseEntity<?> sendPasswordResetCode(@RequestBody EmailRequestDto emailRequestDto) {
+        try {
+            service.setPasswordResetCode(emailRequestDto);
+            service.sendResetPasswordLink(emailRequestDto.getEmail());
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body("Password reset code sent");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+
+    /**
+     * Handles the password reset request.
+     * <p>
+     * This endpoint is used when a user has forgotten their password. The user provides
+     * the reset token via the query parameter and submits the new password along with its confirmation.
+     *
+     * @param token            The password reset token sent to the user's email.
+     * @param passwordResetDto Data Transfer Object containing the new password and confirmation.
+     * @return A response entity containing the authentication response if the password reset is successful.
+     * @throws ResponseStatusException if the token is invalid or the password reset fails.
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<AuthenticationResponseDto> resetPassword(
+            @RequestParam String token,
+            @RequestBody PasswordResetDto passwordResetDto) {
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(service.resetPassword(token, passwordResetDto));
     }
 }

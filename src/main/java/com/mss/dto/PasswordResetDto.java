@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Data Transfer Object (DTO) for password change.
+ * Data Transfer Object (DTO) for resetting forgotten password.
  *
  * @author Dragan Jovanovic
  * @version 1.0
@@ -14,13 +14,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PasswordChangeDto {
-
-    /**
-     * The password of the user.
-     */
-    private String password;
-
+public class PasswordResetDto {
     /**
      * The new password of the user.
      */
