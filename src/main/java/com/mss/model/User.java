@@ -102,6 +102,18 @@ public class User extends BaseEntity<Long> implements UserDetails {
     private LocalDateTime verificationExpiration;
 
     /**
+     * The user's password reset code.
+     */
+    @Column(name = "password_code")
+    private String passwordCode;
+
+    /**
+     * The user's password reset code expiration.
+     */
+    @Column(name = "password_code_expiration")
+    private LocalDateTime passwordCodeExpiration;
+
+    /**
      * This variable stores a 'String' that contains the URL of an image file.
      * The URL can be used to retrieve the image and display it in an application or on webpage.
      */

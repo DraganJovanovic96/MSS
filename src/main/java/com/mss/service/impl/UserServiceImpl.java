@@ -1,6 +1,7 @@
 package com.mss.service.impl;
 
 import com.mss.dto.LocalStorageUserDto;
+import com.mss.dto.PasswordChangeDto;
 import com.mss.dto.UserDto;
 import com.mss.dto.UserUpdateDto;
 import com.mss.enumeration.Role;
@@ -11,12 +12,11 @@ import com.mss.repository.UserRepository;
 import com.mss.service.UserService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Filter;
-import org.hibernate.Session;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -52,6 +52,16 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     /**
+     * The mapper used to map user data.
+     */
+    private final AuthenticationService authService;
+
+    /**
+     * Service interface for encoding passwords. The preferred implementation is BCryptPasswordEncoder.
+     */
+    private final PasswordEncoder passwordEncoder;
+
+    /**
      * Created USER_FILTER attribute, so we can change Filter easily if needed.
      */
     private static final String USER_FILTER = "deletedUserFilter";
@@ -84,11 +94,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public List<UserDto> getAllUsers(boolean isDeleted) {
-        Session session = entityManager.unwrap(Session.class);
-        Filter filter = session.enableFilter(USER_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
         List<User> users = userRepository.findAll();
-        session.disableFilter(USER_FILTER);
 
         return userMapper.usersToUserDtos(users);
     }
@@ -176,6 +182,33 @@ public class UserServiceImpl implements UserService {
     }
 
     /**
+     * Update the user associated with the current authentication context.
+     *
+     * @param passwordChangeDto
+     */
+    @Override
+    public void changePassword(PasswordChangeDto passwordChangeDto) {
+        if (!passwordChangeDto.getNewPassword().equals(passwordChangeDto.getRepeatNewPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New passwords don't match");
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String email = userDetails.getUsername();
+            User user = findOneByEmail(email);
+
+            if (!passwordEncoder.matches(passwordChangeDto.getPassword(), user.getPassword())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect password");
+            }
+            user.setPassword(passwordEncoder.encode(passwordChangeDto.getNewPassword()));
+            userRepository.save(user);
+        } else {
+            throw new RuntimeException("Authentication object does not contain user details");
+        }
+    }
+
+    /**
      * A method for performing soft delete of User entity. It is implemented in UserController class.
      *
      * @param userId parameter that is unique to entity
@@ -194,6 +227,7 @@ public class UserServiceImpl implements UserService {
                     }
 
                     user.setRole(null);
+
                     user.setEmail("DELETED" + user.getEmail());
                     user.getTokens().forEach(token -> {
                         tokenRepository.permanentlyDeleteTokenById(token.getId());

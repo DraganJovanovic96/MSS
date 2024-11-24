@@ -1,5 +1,6 @@
 package com.mss.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -27,6 +28,19 @@ public class ServiceTypeUpdateDto extends BaseEntityDto {
      * The price of service provided.
      */
     private double price;
+
+    /**
+     * The code of part provided.
+     */
+    @Column
+    private String partCode;
+
+    /**
+     * The quantity of services/parts provided.
+     */
+    @Column
+    @NotNull
+    private Integer quantity = 1;
 
     /**
      * Id of service connected to service type.

@@ -4,6 +4,7 @@ import com.mss.model.Vehicle;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,6 +20,17 @@ import java.util.Optional;
  */
 @Repository
 public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
+    /**
+     * Counts the number of vehicles based on their deletion status.
+     *
+     * @param isDeleted A boolean indicating the deletion status of vehicles to be counted.
+     *                  If {@code true}, counts only deleted vehicles.
+     *                  If {@code false}, counts only active vehicles.
+     * @return The total number of vehicles matching the specified deletion status.
+     */
+    @Query("SELECT COUNT(v) FROM Vehicle v WHERE v.deleted = :isDeleted")
+    long countVehiclesByDeleted(@Param("isDeleted") boolean isDeleted);
+
     /**
      * Find a vehicle by vin number.
      *

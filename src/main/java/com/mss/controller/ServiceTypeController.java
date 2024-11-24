@@ -86,7 +86,7 @@ public class ServiceTypeController {
             @ApiResponse(code = 404, message = "Service Type doesn't exist.")
     })
     public ResponseEntity<ServiceTypeDto> getServiceType(@Valid @PathVariable Long serviceTypeId) {
-        ServiceTypeDto serviceTypeDto = serviceTypeService.findServiceTypeById(serviceTypeId, false);
+        ServiceTypeDto serviceTypeDto = serviceTypeService.findServiceTypeById(serviceTypeId);
         return ResponseEntity.ok(serviceTypeDto);
     }
 
@@ -96,7 +96,7 @@ public class ServiceTypeController {
      * @param serviceTypeId the id of the service type to delete
      * @return HTTP status
      */
-    @DeleteMapping(value = "/{serviceTypeId}")
+    @DeleteMapping(value = "/id/{serviceTypeId}")
     @PreAuthorize("hasAnyAuthority('admin:delete', 'user:delete')")
     @ApiOperation(value = "Delete Service Type")
     @ApiResponses(value = {

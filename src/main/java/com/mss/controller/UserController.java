@@ -3,6 +3,7 @@ package com.mss.controller;
 import com.mss.dto.*;
 import com.mss.mapper.UserMapper;
 import com.mss.service.UserService;
+import com.mss.service.impl.AuthenticationService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -35,6 +36,11 @@ public class UserController {
      * The service used to for vehicles.
      */
     private final UserService userService;
+
+    /**
+     * The service used to for authentication.
+     */
+    private final AuthenticationService authService;
 
     /**
      * The mapper used to for users.
@@ -123,5 +129,37 @@ public class UserController {
     public ResponseEntity<UserUpdateDto> updateUser(@Valid @RequestBody UserUpdateDto userUpdateDto) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(userService.updateUser(userUpdateDto));
+    }
+
+    @PutMapping(value = "/change-password", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:update', 'user:update')")
+    @ApiOperation(value = "Change user's password")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Successfully updated password."),
+            @ApiResponse(code = 400, message = "Bad request - Passwords don't match or incorrect current password."),
+            @ApiResponse(code = 404, message = "User not found.")
+    })
+    public ResponseEntity<String> changePassword(@Valid @RequestBody PasswordChangeDto passwordChangeDto) {
+        userService.changePassword(passwordChangeDto);
+        return ResponseEntity.status(HttpStatus.OK).body("Password successfully updated.");
+    }
+
+    /**
+     * Resends a verification code to the specified email.
+     * Requires 'admin:create' or 'user:create' authority.
+     *
+     * @param email The email address to send the verification code to.
+     * @return A {@link ResponseEntity} with status 201 and a success message.
+     */
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:create', 'user:create')")
+    @ApiOperation(value = "Re-send verification code")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Successfully re-sent verification code.")
+    })
+    public ResponseEntity<String> resendVerificationCode(@Valid @RequestBody String email) {
+        authService.resendVerificationCode(email);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Verification code successfully sent.");
     }
 }

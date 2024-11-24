@@ -4,6 +4,7 @@ import com.mss.model.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,6 +20,17 @@ import java.util.Optional;
  */
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
+    /**
+     * Counts the number of customers based on their deletion status.
+     *
+     * @param isDeleted A boolean indicating the deletion status of customers to be counted.
+     *                  If {@code true}, counts only deleted customers.
+     *                  If {@code false}, counts only active customers.
+     * @return The total number of customers matching the specified deletion status.
+     */
+    @Query("SELECT COUNT(c) FROM Customer c WHERE c.deleted = :isDeleted")
+    long countCustomersByDeleted(@Param("isDeleted") boolean isDeleted);
+
     /**
      * A method for finding all customers based on first and last name.
      *

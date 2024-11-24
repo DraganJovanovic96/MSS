@@ -109,6 +109,19 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     /**
+     * Counts the number of customers based on their deletion status.
+     *
+     * @param isDeleted A boolean indicating the deletion status of customers to be counted.
+     *                  If {@code true}, counts only deleted customers.
+     *                  If {@code false}, counts only active customers.
+     * @return The total number of customers matching the specified deletion status.
+     */
+    @Override
+    public long getCustomerCount(boolean isDeleted) {
+        return customerRepository.countCustomersByDeleted(isDeleted);
+    }
+
+    /**
      * This method saves a new customer. It is implemented in CustomerController class.
      *
      * @param customerCreateDto the DTO containing the information for the new customer to be saved

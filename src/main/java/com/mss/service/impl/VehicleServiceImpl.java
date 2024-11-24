@@ -80,6 +80,19 @@ public class VehicleServiceImpl implements VehicleService {
     private final EntityManager entityManager;
 
     /**
+     * Counts the number of vehicles based on their deletion status.
+     *
+     * @param isDeleted A boolean indicating the deletion status of vehicles to be counted.
+     *                  If {@code true}, counts only deleted vehicles.
+     *                  If {@code false}, counts only active vehicles.
+     * @return The total number of vehicles matching the specified deletion status.
+     */
+    @Override
+    public long getVehicleCount(boolean isDeleted) {
+        return vehicleRepository.countVehiclesByDeleted(isDeleted);
+    }
+
+    /**
      * Retrieves a list of all vehicles which are not deleted.
      *
      * @return A list of VehicleDto objects representing the vehicles.

@@ -1,6 +1,7 @@
 package com.mss.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Column;
 import lombok.Data;
 
 /**
@@ -27,6 +28,18 @@ public class ServiceTypeDto extends BaseEntityDto {
      * The price of service provided.
      */
     private double price;
+
+    /**
+     * The code of part provided.
+     */
+    @Column
+    private String partCode;
+
+    /**
+     * The quantity of services/parts provided.
+     */
+    @Column
+    private Integer quantity;
 
     /**
      * Service of service type.

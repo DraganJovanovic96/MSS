@@ -46,6 +46,12 @@ public class ServiceTypeFiltersQueryDto {
     private Double priceMax;
 
     /**
+     * The code of part provided.
+     */
+    @JsonProperty("partCode")
+    private String partCode;
+
+    /**
      * Id of service connected to service type.
      */
     @JsonProperty("serviceId")

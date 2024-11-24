@@ -62,13 +62,13 @@ public class PdfServiceImpl implements PdfService {
         List<ServiceType> allServiceTypes = service.getServiceTypes();
         List<ServiceType> serviceTypes = new ArrayList<>();
 
-        for (ServiceType serviceType: allServiceTypes) {
-            if(!serviceType.getDeleted()) {
+        for (ServiceType serviceType : allServiceTypes) {
+            if (!serviceType.getDeleted()) {
                 serviceTypes.add(serviceType);
             }
         }
 
-        float totalPrice = calculateTotalPrice(serviceTypes);
+        double totalPrice = calculateTotalPrice(serviceTypes);
 
         try {
             PdfWriter writer = new PdfWriter(dataStream);
@@ -127,10 +127,13 @@ public class PdfServiceImpl implements PdfService {
      * @param serviceTypes the list of service types.
      * @return the total price.
      */
-    private float calculateTotalPrice(List<ServiceType> serviceTypes) {
-        float total = 0;
+    private double calculateTotalPrice(List<ServiceType> serviceTypes) {
+        double total = 0;
         for (ServiceType serviceType : serviceTypes) {
-            total += serviceType.getPrice();
+            int multiplier = serviceType.getQuantity();
+            double price =  serviceType.getPrice();
+            double amountToAdd = price * multiplier;
+            total += amountToAdd;
         }
         return total;
     }
@@ -142,7 +145,7 @@ public class PdfServiceImpl implements PdfService {
      * @param totalPrice the total price of the services.
      * @param service    the service object.
      */
-    private void addHeader(Document document, float totalPrice, Service service) {
+    private void addHeader(Document document, double totalPrice, Service service) {
         float[] columnWidths = {190F, 190F, 190F};
 
         Table table = new Table(columnWidths);
@@ -282,16 +285,22 @@ public class PdfServiceImpl implements PdfService {
      * @param serviceTypes the list of service types to add to the table.
      */
     private void addServiceTable(Document document, List<ServiceType> serviceTypes) {
-        float[] columnWidths = {190F, 190F, 190F};
+        float[] columnWidths = {142.5F, 142.5F, 142.5F, 142.5F};
         Table serviceTable = new Table(columnWidths);
         serviceTable.addHeaderCell(new Cell()
                 .add(new Paragraph("Description")
-                        .setTextAlignment(TextAlignment.LEFT))
+                        .setTextAlignment(TextAlignment.CENTER))
                 .setBorder(Border.NO_BORDER)
                 .setBackgroundColor(new DeviceGray(0f), 0.7f)
                 .setFontColor(new DeviceGray(1.0f)));
         serviceTable.addHeaderCell(new Cell()
                 .add(new Paragraph("Type of service")
+                        .setTextAlignment(TextAlignment.CENTER))
+                .setBorder(Border.NO_BORDER)
+                .setBackgroundColor(new DeviceGray(0f), 0.7f)
+                .setFontColor(new DeviceGray(1.0f)));
+        serviceTable.addHeaderCell(new Cell()
+                .add(new Paragraph("Quantity")
                         .setTextAlignment(TextAlignment.CENTER))
                 .setBorder(Border.NO_BORDER)
                 .setBackgroundColor(new DeviceGray(0f), 0.7f)
@@ -304,8 +313,9 @@ public class PdfServiceImpl implements PdfService {
                 .setFontColor(new DeviceGray(1.0f)));
 
         for (ServiceType serviceType : serviceTypes) {
-            serviceTable.addCell(new Cell().add(new Paragraph(serviceType.getDescription())).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.LEFT));
+            serviceTable.addCell(new Cell().add(new Paragraph(serviceType.getDescription())).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
             serviceTable.addCell(new Cell().add(new Paragraph(serviceType.getTypeOfService())).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
+            serviceTable.addCell(new Cell().add(new Paragraph(String.valueOf(serviceType.getQuantity()))).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
             serviceTable.addCell(new Cell().add(new Paragraph(String.valueOf(serviceType.getPrice()))).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
         }
 
@@ -332,7 +342,7 @@ public class PdfServiceImpl implements PdfService {
      * @param document   the PDF document.
      * @param totalPrice the total price of the services.
      */
-    private void addTotalPrice(Document document, float totalPrice) {
+    private void addTotalPrice(Document document, double totalPrice) {
         Paragraph totalPriceParagraph = new Paragraph(String.valueOf(totalPrice))
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setFontSize(14)

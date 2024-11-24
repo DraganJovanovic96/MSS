@@ -42,6 +42,10 @@ public class ServiceTypeCustomRepository {
             predicates.add(cb.like(cb.lower(serviceTypes.get("description")), "%" + filters.getDescription().toLowerCase() + "%"));
         }
 
+        if (Objects.nonNull(filters) && Objects.nonNull(filters.getPartCode())) {
+            predicates.add(cb.like(cb.lower(serviceTypes.get("partCode")), "%" + filters.getPartCode().toLowerCase() + "%"));
+        }
+
         if (Objects.nonNull(filters) && Objects.nonNull(filters.getPriceMin())) {
             predicates.add(cb.greaterThanOrEqualTo(serviceTypes.get("price"), filters.getPriceMin()));
         }

@@ -15,6 +15,16 @@ import java.util.List;
  */
 public interface ServiceService {
     /**
+     * Counts the number of services based on their deletion status.
+     *
+     * @param isDeleted A boolean indicating the deletion status of services to be counted.
+     *                  If {@code true}, counts only deleted services.
+     *                  If {@code false}, counts only active services.
+     * @return The total number of services matching the specified deletion status.
+     */
+    long getServiceCount(boolean isDeleted);
+
+    /**
      * A method for retrieving all services implemented in ServiceServiceImpl class.
      *
      * @param isDeleted parameter that checks if object is soft deleted

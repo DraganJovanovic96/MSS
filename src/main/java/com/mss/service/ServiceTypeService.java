@@ -44,7 +44,7 @@ public interface ServiceTypeService {
      * @param serviceTypeId the unique identifier of the service type to retrieve
      * @return a {@link ServiceTypeDto} representing the found  service type
      */
-    ServiceTypeDto findServiceTypeById(Long serviceTypeId, boolean isDeleted);
+    ServiceTypeDto findServiceTypeById(Long serviceTypeId);
 
     /**
      * A method for deleting service type. It is implemented in ServiceTypeServiceImpl class.

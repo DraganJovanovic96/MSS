@@ -31,4 +31,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return an Optional containing the user if found, or empty if not
      */
     Optional<User> findOneById(Long userId);
+
+    /**
+     * Find a user by their password code.
+     *
+     * @param passwordCode the password code of the user
+     * @return an Optional containing the user if found, or empty if not
+     */
+    Optional <User> findOneByPasswordCode(String passwordCode);
+
+    /**
+     * Find a user by their verification code.
+     *
+     * @param verificationCode the verification code of the user
+     * @return an Optional containing the user if found, or empty if not
+     */
+    Optional <User> findOneByVerificationCode(String verificationCode);
 }
