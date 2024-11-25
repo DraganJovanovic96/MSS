@@ -1,17 +1,20 @@
 package com.mss.service.impl;
 
-import com.mss.dto.LocalStorageUserDto;
-import com.mss.dto.PasswordChangeDto;
-import com.mss.dto.UserDto;
-import com.mss.dto.UserUpdateDto;
+import com.mss.dto.*;
 import com.mss.enumeration.Role;
 import com.mss.mapper.UserMapper;
 import com.mss.model.User;
 import com.mss.repository.TokenRepository;
+import com.mss.repository.UserCustomRepository;
 import com.mss.repository.UserRepository;
 import com.mss.service.UserService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Filter;
+import org.hibernate.Session;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,14 +50,14 @@ public class UserServiceImpl implements UserService {
     private final TokenRepository tokenRepository;
 
     /**
-     * The mapper used to map user data.
+     * The repository used to retrieve token data.
      */
-    private final UserMapper userMapper;
+    private final UserCustomRepository userCustomRepository;
 
     /**
      * The mapper used to map user data.
      */
-    private final AuthenticationService authService;
+    private final UserMapper userMapper;
 
     /**
      * Service interface for encoding passwords. The preferred implementation is BCryptPasswordEncoder.
@@ -84,6 +87,20 @@ public class UserServiceImpl implements UserService {
     public User findOneByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with that email doesn't exist"));
+    }
+
+    /**
+     * Finds a user by their unique identifier.
+     *
+     * @param userId the unique identifier of the user to retrieve
+     * @return a {@link CustomerDto} representing the found user
+     */
+    @Override
+    public UserDto findUserById(Long userId) {
+        User user = userRepository.findOneById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with this id doesn't exist"));
+
+        return userMapper.userToUserDto(user);
     }
 
     /**
@@ -175,10 +192,36 @@ public class UserServiceImpl implements UserService {
             user.setDateOfBirth(userUpdateDto.getDateOfBirth());
             user.setAddress(userUpdateDto.getAddress());
             userRepository.save(user);
+
             return userMapper.userToUserUpdateDto(user);
         } else {
             throw new RuntimeException("Authentication object does not contain user details");
         }
+    }
+
+    /**
+     * Update the user by admin from id.
+     *
+     * @param userUpdateDto
+     * @return The UserUpdateDto object representing the authenticated user details.
+     */
+    @Override
+    public UserUpdateDto updateUserByAdmin(UserUpdateDto userUpdateDto) {
+        User user = userRepository.findOneById(userUpdateDto.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User with this id doesn't exist"));
+
+        user.setUpdatedAt(Instant.now());
+        user.setFirstname(userUpdateDto.getFirstname());
+        user.setLastname(userUpdateDto.getLastname());
+        user.setEmail(userUpdateDto.getEmail());
+        user.setImageUrl(userUpdateDto.getImageUrl());
+        user.setMobileNumber(userUpdateDto.getMobileNumber());
+        user.setDateOfBirth(userUpdateDto.getDateOfBirth());
+        user.setAddress(userUpdateDto.getAddress());
+        user.setDeleted(userUpdateDto.getDeleted());
+        userRepository.save(user);
+
+        return userMapper.userToUserUpdateDto(user);
     }
 
     /**
@@ -228,7 +271,6 @@ public class UserServiceImpl implements UserService {
 
                     user.setRole(null);
 
-                    user.setEmail("DELETED" + user.getEmail());
                     user.getTokens().forEach(token -> {
                         tokenRepository.permanentlyDeleteTokenById(token.getId());
                     });
@@ -241,5 +283,31 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User is not found."));
 
         userRepository.deleteById(userId);
+    }
+
+    /**
+     * This method first calls the userRepository's findFilteredUsers method
+     * to retrieve a Page of User objects that match the query.
+     *
+     * @param isDeleted           boolean representing deleted objects
+     * @param userFiltersQueryDto {@link UserFiltersQueryDto} object which contains query parameters
+     * @param page                int number of wanted page
+     * @param pageSize            number of results per page
+     * @return a Page of UsersDto objects that match the specified query
+     */
+    @Override
+    public Page<UserDto> findFilteredUsers(boolean isDeleted, UserFiltersQueryDto userFiltersQueryDto, Integer page, Integer pageSize) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(USER_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+
+        Page<User> resultPage = userCustomRepository.findFilteredUsers(userFiltersQueryDto, PageRequest.of(page, pageSize));
+        List<User> users = resultPage.getContent();
+
+        session.disableFilter(USER_FILTER);
+
+        List<UserDto> userDtos = userMapper.usersToUserDtos(users);
+
+        return new PageImpl<>(userDtos, resultPage.getPageable(), resultPage.getTotalElements());
     }
 }
