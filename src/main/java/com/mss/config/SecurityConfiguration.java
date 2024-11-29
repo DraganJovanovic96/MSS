@@ -1,6 +1,7 @@
 package com.mss.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -53,6 +54,9 @@ public class SecurityConfiguration {
     private final LogoutHandler logoutHandler;
 
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    @Value("${spring.frontend.url}")
+    private String frontendUrl;
 
     /**
      * Configures the security filter chain for the application.
@@ -120,6 +124,9 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/revenue").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(POST, "/api/v1/revenue").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
 
+                        .requestMatchers("/api/v1/email").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(POST, "/api/v1/revenue").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+
                         .anyRequest()
                         .authenticated()
                 )
@@ -151,7 +158,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200", "https://mywebsite.com"));
+        configuration.setAllowedOrigins(List.of(frontendUrl));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type","Refresh"));
         configuration.setExposedHeaders(List.of("X-Total-Items", "X-Total-Pages", "X-Current-Page", "Authorization", "Refresh"));

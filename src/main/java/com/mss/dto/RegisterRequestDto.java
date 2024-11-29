@@ -3,6 +3,8 @@ package com.mss.dto;
 
 import com.mss.enumeration.Role;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,6 +42,8 @@ public class RegisterRequestDto {
     /**
      * The password of the user.
      */
+    @Size(min = 6, message = "Password must be at least 6 characters long.")
+    @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).{6,}$", message = "Password must be at least 6 characters long and contain at least one letter and one number.")
     private String password;
 
     /**
