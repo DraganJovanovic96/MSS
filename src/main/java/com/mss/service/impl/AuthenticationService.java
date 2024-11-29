@@ -11,6 +11,7 @@ import com.mss.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -81,7 +82,7 @@ public class AuthenticationService {
      * @param request the registration request data
      * @return the authentication response containing the access token and refresh token
      */
-    public AuthenticationResponseDto register(RegisterRequestDto request) throws UnsupportedEncodingException {
+    public AuthenticationResponseDto register(@Valid RegisterRequestDto request) throws UnsupportedEncodingException {
         var user = User.builder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
