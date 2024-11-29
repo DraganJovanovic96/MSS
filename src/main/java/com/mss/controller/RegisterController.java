@@ -3,6 +3,7 @@ package com.mss.controller;
 import com.mss.dto.AuthenticationResponseDto;
 import com.mss.dto.RegisterRequestDto;
 import com.mss.service.impl.AuthenticationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,7 +37,7 @@ public class RegisterController {
     @PostMapping
     @PreAuthorize("hasAnyAuthority('admin:create')")
     public ResponseEntity<AuthenticationResponseDto> register(
-            @RequestBody RegisterRequestDto request
+            @Valid @RequestBody RegisterRequestDto request
     ) throws UnsupportedEncodingException {
         return ResponseEntity.ok(service.register(request));
     }

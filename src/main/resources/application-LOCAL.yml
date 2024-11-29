@@ -1,9 +1,11 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/mss_db
+    url: ${DATASOURCE_URL}
     username: ${username}
     password: ${password}
     driver-class-name: org.postgresql.Driver
+  frontend:
+    url: ${FRONTEND_URL}
   oauth2:
     resourceserver:
       opaquetoken:

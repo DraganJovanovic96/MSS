@@ -152,7 +152,7 @@ public class ServiceController {
      * @return ResponseEntity<List> - The HTTP response containing a list of {@link ServiceDto} objects as the response body
      */
     @PostMapping("/search-with-customer")
-    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
+    @PreAuthorize("hasAnyAuthority('admin:read')")
     @ApiOperation(value = "Get all/filtered services")
     @ApiResponse(code = 200, message = "Requests data successfully fetched.")
     public ResponseEntity<List<ServiceWithUserDto>> getServicesWithCustomer(@RequestBody(required = false) ServiceFiltersQueryDto serviceFiltersQueryDto,
