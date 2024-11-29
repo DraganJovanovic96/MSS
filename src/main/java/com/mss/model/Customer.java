@@ -1,6 +1,7 @@
 package com.mss.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -34,6 +35,12 @@ public class Customer extends BaseEntity<Long> {
      */
     @Column
     private String address;
+
+    /**
+     * The customer's email.
+     */
+    @Size(max = 320)
+    private String email;
 
     /**
      * The customer's phone number.

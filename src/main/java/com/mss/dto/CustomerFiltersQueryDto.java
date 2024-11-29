@@ -30,6 +30,13 @@ public class CustomerFiltersQueryDto {
     private String address;
 
     /**
+     * The customer's email.
+     */
+    @JsonProperty("email")
+    private String email;
+
+
+    /**
      * The customer's phoneNumber.
      */
     @JsonProperty("phoneNumber")

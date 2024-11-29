@@ -54,6 +54,10 @@ public class CustomerCustomRepository {
             predicates.add(cb.like(cb.lower(customer.get("address")), "%" + filters.getAddress().toLowerCase() + "%"));
         }
 
+        if (Objects.nonNull(filters) && Objects.nonNull(filters.getEmail())) {
+            predicates.add(cb.like(cb.lower(customer.get("email")), "%" + filters.getEmail().toLowerCase() + "%"));
+        }
+
         if (Objects.nonNull(filters) && Objects.nonNull(filters.getPhoneNumber())) {
             filters.setPhoneNumber(filters.getPhoneNumber().replaceAll("[^0-9]", ""));
             predicates.add(cb.like(cb.lower(customer.get("phoneNumber")), "%" + filters.getPhoneNumber() + "%"));

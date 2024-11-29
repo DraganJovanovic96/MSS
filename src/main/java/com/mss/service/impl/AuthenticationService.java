@@ -20,8 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Random;
 
 /**
  * Service class for handling authentication-related operations.
@@ -64,12 +66,22 @@ public class AuthenticationService {
     private final EmailServiceImpl emailService;
 
     /**
+     * The characters used to create password code.
+     */
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    /**
+     * The length of password code.
+     */
+    private static final int CODE_LENGTH = 64;
+
+    /**
      * Registers a new user.
      *
      * @param request the registration request data
      * @return the authentication response containing the access token and refresh token
      */
-    public AuthenticationResponseDto register(RegisterRequestDto request) {
+    public AuthenticationResponseDto register(RegisterRequestDto request) throws UnsupportedEncodingException {
         var user = User.builder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
@@ -81,10 +93,11 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .build();
-        user.setVerificationCode(passwordEncoder.encode(generateVerificationCode()));
+        String token = generateVerificationCode();
+        user.setVerificationCode(passwordEncoder.encode(token));
         user.setVerificationExpiration(LocalDateTime.now().plusHours(3));
         user.setEnabled(false);
-        sendVerificationEmail(user);
+        sendVerificationEmail(token, user.getEmail());
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
@@ -95,18 +108,26 @@ public class AuthenticationService {
                 .build();
     }
 
-    public void setPasswordResetCode(EmailRequestDto emailRequestDto) {
+    public void setPasswordResetCode(EmailRequestDto emailRequestDto) throws UnsupportedEncodingException {
         User user = repository.findByEmail(emailRequestDto.getEmail())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " User doesn't exist"));
-        user.setPasswordCode(passwordEncoder.encode(generateVerificationCode()));
+
+        String generatedToken = generateVerificationCode();
+
+        user.setPasswordCode(passwordEncoder.encode(generatedToken));
         user.setPasswordCodeExpiration(LocalDateTime.now().plusMinutes(10));
         revokeAllUserTokens(user);
         repository.save(user);
+        sendResetPasswordLink(emailRequestDto.getEmail(), generatedToken);
     }
 
-    public AuthenticationResponseDto resetPassword(String passwordCode, PasswordResetDto passwordResetDto) {
-        User user = repository.findOneByPasswordCode(passwordCode)
+    public AuthenticationResponseDto resetPassword(String passwordCode, String email, PasswordResetDto passwordResetDto) {
+        User user = repository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " User doesn't exist"));
+
+        if (!passwordEncoder.matches(passwordCode, user.getPasswordCode())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password reset code");
+        }
 
         if (user.getPasswordCodeExpiration().isBefore(LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.GONE, " Password link has expired");
@@ -233,12 +254,16 @@ public class AuthenticationService {
         }
     }
 
-    public AuthenticationResponseDto verifyUser(String token) {
-        User user = repository.findOneByVerificationCode(token)
+    public AuthenticationResponseDto verifyUser(String token, String email) {
+        User user = repository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " User doesn't exist"));
 
         if (user.isEnabled()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, " User is already verified");
+        }
+
+        if (!passwordEncoder.matches(token, user.getVerificationCode())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password reset code");
         }
 
         if (user.getVerificationExpiration().isBefore(LocalDateTime.now())) {
@@ -261,7 +286,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    public void resendVerificationCode(String email) {
+    public void resendVerificationCode(String email) throws UnsupportedEncodingException {
         User user = repository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " User doesn't exist"));
 
@@ -269,17 +294,19 @@ public class AuthenticationService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, " User is already verified");
         }
 
-        user.setVerificationCode(passwordEncoder.encode(generateVerificationCode()));
+        String token = generateVerificationCode();
+        user.setVerificationCode(passwordEncoder.encode(token));
         user.setVerificationExpiration(LocalDateTime.now().plusHours(3));
-        sendVerificationEmail(user);
+        sendVerificationEmail(token, user.getEmail());
         repository.save(user);
     }
 
-    public void sendVerificationEmail(User user) {
+    public void sendVerificationEmail(String token, String email) throws UnsupportedEncodingException {
         String subject = "MSS Account Verification";
 
-        String verificationCode = user.getVerificationCode();
-        String verificationLink = "http://localhost:4200/verify?token=" + verificationCode;
+        String verificationLink = "http://localhost:4200/verify?token=" +
+                URLEncoder.encode(token, "UTF-8") +
+                "&email=" + URLEncoder.encode(email, "UTF-8");
 
         String htmlMessage = """
                 <!DOCTYPE html>
@@ -376,18 +403,19 @@ public class AuthenticationService {
                 """.formatted(verificationLink);
 
         try {
-            emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
+            emailService.sendVerificationEmail(email, subject, htmlMessage);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
     }
 
-    public void sendResetPasswordLink(String email) {
+    public void sendResetPasswordLink(String email, String generatedToken) throws UnsupportedEncodingException {
         User user = repository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User doesn't exist"));
 
-        String resetToken = user.getPasswordCode();
-        String resetLink = "http://localhost:4200/reset-password?token=" + resetToken;
+        String resetLink = "http://localhost:4200/reset-password?token=" +
+                URLEncoder.encode(generatedToken, "UTF-8") +
+                "&email=" + URLEncoder.encode(email, "UTF-8");
 
         String subject = "MSS Password Reset";
 
@@ -427,9 +455,15 @@ public class AuthenticationService {
         }
     }
 
-    private String generateVerificationCode() {
-        Random random = new Random();
-        int code = random.nextInt(900000) + 100000;
-        return String.valueOf(code);
+    public static String generateVerificationCode() {
+        SecureRandom secureRandom = new SecureRandom();
+        StringBuilder verificationCode = new StringBuilder(CODE_LENGTH);
+
+        for (int i = 0; i < CODE_LENGTH; i++) {
+            int randomIndex = secureRandom.nextInt(CHARACTERS.length());
+            verificationCode.append(CHARACTERS.charAt(randomIndex));
+        }
+
+        return verificationCode.toString();
     }
 }

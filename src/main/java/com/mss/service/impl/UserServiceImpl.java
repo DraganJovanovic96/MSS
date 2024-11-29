@@ -269,8 +269,6 @@ public class UserServiceImpl implements UserService {
                         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin cannot be deleted");
                     }
 
-                    user.setRole(null);
-
                     user.getTokens().forEach(token -> {
                         tokenRepository.permanentlyDeleteTokenById(token.getId());
                     });

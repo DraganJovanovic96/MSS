@@ -18,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 /**
@@ -190,7 +191,7 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "Successfully re-sent verification code.")
     })
-    public ResponseEntity<String> resendVerificationCode(@Valid @RequestBody String email) {
+    public ResponseEntity<String> resendVerificationCode(@Valid @RequestBody String email) throws UnsupportedEncodingException {
         authService.resendVerificationCode(email);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("Verification code successfully sent.");

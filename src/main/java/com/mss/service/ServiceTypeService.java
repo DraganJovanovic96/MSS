@@ -1,6 +1,7 @@
 package com.mss.service;
 
 import com.mss.dto.*;
+import com.mss.model.Service;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -45,6 +46,22 @@ public interface ServiceTypeService {
      * @return a {@link ServiceTypeDto} representing the found  service type
      */
     ServiceTypeDto findServiceTypeById(Long serviceTypeId);
+
+    /**
+     * Finds a revenue for service.
+     *
+     * @param service service with data
+     * @return a revenue from one service
+     */
+    double findRevenueForService(boolean isDeleted, Service service);
+
+    /**
+     * Finds a number of parts for service.
+     *
+     * @param service service with data
+     * @return a revenue from one service
+     */
+    Integer findNumberOfPartsForService(boolean isDeleted, Service service);
 
     /**
      * A method for deleting service type. It is implemented in ServiceTypeServiceImpl class.
