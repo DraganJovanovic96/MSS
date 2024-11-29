@@ -1,7 +1,7 @@
 package com.mss.repository;
 
-import com.mss.dto.CustomerFiltersQueryDto;
-import com.mss.model.Customer;
+import com.mss.dto.UserFiltersQueryDto;
+import com.mss.model.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.*;
@@ -17,7 +17,7 @@ import java.util.Objects;
 
 @Data
 @Repository
-public class CustomerCustomRepository {
+public class UserCustomRepository {
     /**
      * An EntityManager instance is associated with a persistence context.
      * A persistence context is a set of entity instances in which for any
@@ -26,51 +26,48 @@ public class CustomerCustomRepository {
     private final EntityManager entityManager;
 
     /**
-     * Retrieves a paginated list of customers based on the provided filters.
-     * The method constructs a dynamic query using the criteria API to filter customers
-     * by full name, address, phone number, and vehicle IDs.
+     * Retrieves a paginated list of users based on the provided filters.
+     * The method constructs a dynamic query using the criteria API to filter users
+     * by full name,email, address, phone number.
      * The phone number is formatted to only contain numeric digits before filtering.
      *
-     * @param filters  the {@link CustomerFiltersQueryDto} containing the filter criteria
-     *                 for customers. If any field is null, it will be ignored in the query.
+     * @param filters  the {@link UserFiltersQueryDto} containing the filter criteria
+     *                 for users. If any field is null, it will be ignored in the query.
      * @param pageable the {@link Pageable} object containing pagination information such as
      *                 page number and page size.
-     * @return a {@link Page} of {@link Customer} objects that match the filter criteria.
-     * The page contains the list of customers, pagination details, and total number of rows.
+     * @return a {@link Page} of {@link User} objects that match the filter criteria.
+     * The page contains the list of users, pagination details, and total number of rows.
      */
-    public Page<Customer> findFilteredCustomers(CustomerFiltersQueryDto filters, Pageable pageable) {
+    public Page<User> findFilteredUsers(UserFiltersQueryDto filters, Pageable pageable) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery cq = cb.createQuery();
-        Root<Customer> customer = cq.from(Customer.class);
+        Root<User> user = cq.from(User.class);
         List<Predicate> predicates = new ArrayList<>();
 
         if (Objects.nonNull(filters) && Objects.nonNull(filters.getFullName())) {
-            Expression<String> fullName = cb.concat(customer.get("firstname"), " ");
-            fullName = cb.concat(fullName, customer.get("lastname"));
+            Expression<String> fullName = cb.concat(user.get("firstname"), " ");
+            fullName = cb.concat(fullName, user.get("lastname"));
             predicates.add(cb.like(cb.lower(fullName), "%" + filters.getFullName().toLowerCase() + "%"));
         }
 
         if (Objects.nonNull(filters) && Objects.nonNull(filters.getAddress())) {
-            predicates.add(cb.like(cb.lower(customer.get("address")), "%" + filters.getAddress().toLowerCase() + "%"));
+            predicates.add(cb.like(cb.lower(user.get("address")), "%" + filters.getAddress().toLowerCase() + "%"));
         }
 
         if (Objects.nonNull(filters) && Objects.nonNull(filters.getEmail())) {
-            predicates.add(cb.like(cb.lower(customer.get("email")), "%" + filters.getEmail().toLowerCase() + "%"));
+            predicates.add(cb.like(cb.lower(user.get("email")), "%" + filters.getEmail().toLowerCase() + "%"));
         }
 
         if (Objects.nonNull(filters) && Objects.nonNull(filters.getPhoneNumber())) {
             filters.setPhoneNumber(filters.getPhoneNumber().replaceAll("[^0-9]", ""));
-            predicates.add(cb.like(cb.lower(customer.get("phoneNumber")), "%" + filters.getPhoneNumber() + "%"));
+            predicates.add(cb.like(cb.lower(user.get("mobileNumber")), "%" + filters.getPhoneNumber() + "%"));
         }
 
-        if (Objects.nonNull(filters) && Objects.nonNull(filters.getVehicleIds()) && !filters.getVehicleIds().isEmpty()) {
-            predicates.add(customer.get("vehicle").get("id").in(filters.getVehicleIds()));
-        }
         cq.where(cb.and(predicates.toArray(new Predicate[0])));
-        cq.orderBy(cb.asc(customer.get("firstname")));
-        cq.select(customer).distinct(true);
+        cq.orderBy(cb.asc(user.get("firstname")));
+        cq.select(user).distinct(true);
 
-        TypedQuery<Customer> query = entityManager.createQuery(cq);
+        TypedQuery<User> query = entityManager.createQuery(cq);
         int totalRows = query.getResultList().size();
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,10 +29,23 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
      *                  If {@code false}, counts only active services.
      * @return The total number of services matching the specified deletion status.
      */
-    @Query("SELECT COUNT(s) FROM Service s WHERE s.deleted = :isDeleted")
-    long countServicesByDeleted(@Param("isDeleted") boolean isDeleted);
+    long countByDeleted(boolean isDeleted);
+
     /**
-     * Find a service by their id if they are not soft deleted.
+     * Finds all services based on their deletion status and a date range.
+     *                  If {@code true}, retrieves only deleted services.
+     *                  If {@code false}, retrieves only active services.
+     * @param startDate The start of the date range (inclusive).
+     * @param endDate   The end of the date range (inclusive).
+     * @return A list of services matching the specified deletion status and date range.
+     */
+    @Query("SELECT s FROM Service s WHERE s.startDate BETWEEN :startDate AND :endDate")
+    List<Service> findServicesByDateRange(@Param("startDate") LocalDate startDate,
+                                          @Param("endDate") LocalDate endDate);
+
+
+    /**
+     * Find a service by their id if they are not softly deleted.
      *
      * @param serviceId the id of the service
      * @return an Optional containing the service if found, or empty if not

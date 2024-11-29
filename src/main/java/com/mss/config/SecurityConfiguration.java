@@ -117,6 +117,9 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/dashboard").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(GET, "/api/v1/dashboard").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
 
+                        .requestMatchers("/api/v1/revenue").hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(POST, "/api/v1/revenue").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+
                         .anyRequest()
                         .authenticated()
                 )

@@ -31,6 +31,12 @@ public class CustomerDto extends BaseEntityDto {
     private String address;
 
     /**
+     * The customer's email.
+     */
+    private String email;
+
+
+    /**
      * The customer's phone number.
      */
     private String phoneNumber;

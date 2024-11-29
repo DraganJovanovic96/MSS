@@ -1,20 +1,14 @@
 package com.mss.service.impl;
 
-import com.mss.dto.ServiceCreateDto;
-import com.mss.dto.ServiceDto;
-import com.mss.dto.ServiceFiltersQueryDto;
-import com.mss.dto.ServiceUpdateDto;
+import com.mss.dto.*;
 import com.mss.mapper.ServiceMapper;
 import com.mss.mapper.UserMapper;
 import com.mss.mapper.VehicleMapper;
-import com.mss.model.Service;
-import com.mss.model.ServiceType;
-import com.mss.model.User;
-import com.mss.model.Vehicle;
+import com.mss.model.*;
 import com.mss.repository.*;
 import com.mss.service.ServiceService;
+import com.mss.service.ServiceTypeService;
 import jakarta.persistence.EntityManager;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Filter;
 import org.hibernate.Session;
@@ -22,11 +16,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * The ServiceServiceImpl implements ServiceService and
@@ -51,6 +49,11 @@ public class ServiceServiceImpl implements ServiceService {
     private final ServiceTypeRepository serviceTypeRepository;
 
     /**
+     * The service used to retrieve service data.
+     */
+    private final ServiceTypeService serviceTypeService;
+
+    /**
      * The custom repository used to retrieve service data.
      */
     private final ServiceCustomRepository serviceCustomRepository;
@@ -61,9 +64,14 @@ public class ServiceServiceImpl implements ServiceService {
     private final UserRepository userRepository;
 
     /**
-     * The repository used to retrieve user data.
+     * The repository used to retrieve vehicle data.
      */
     private final VehicleRepository vehicleRepository;
+
+    /**
+     * The repository used to retrieve customer data.
+     */
+    private final CustomerRepository customerRepository;
 
     /**
      * The mapper used to convert service data between ServiceDto and Service entities.
@@ -102,7 +110,190 @@ public class ServiceServiceImpl implements ServiceService {
      */
     @Override
     public long getServiceCount(boolean isDeleted) {
-        return serviceRepository.countServicesByDeleted(isDeleted);
+        return serviceRepository.countByDeleted(isDeleted);
+    }
+
+    /**
+     * Gets the revenue based on two dates.
+     *
+     * @param isDeleted  A boolean indicating the deletion status of services to be counted.
+     *                   If {@code true}, counts only deleted services.
+     *                   If {@code false}, counts only active services.
+     * @param twoDateDto
+     * @return The total number of services matching the specified deletion status.
+     */
+    @Override
+    public double getRevenue(boolean isDeleted, TwoDateDto twoDateDto) {
+        double revenue = 0;
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+        List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
+
+        for (Service service : services) {
+            revenue += serviceTypeService.findRevenueForService(isDeleted, service);
+        }
+
+        session.disableFilter(SERVICE_FILTER);
+        return revenue;
+    }
+
+    /**
+     * Gets the number of parts based on two dates.
+     *
+     * @param isDeleted  A boolean indicating the deletion status of services to be counted.
+     *                   If {@code true}, counts only deleted services.
+     *                   If {@code false}, counts only active services.
+     * @param twoDateDto tho dates for range when service could have started.
+     * @return The total number of services matching the specified deletion status.
+     */
+    @Override
+    public Integer getParts(boolean isDeleted, TwoDateDto twoDateDto) {
+        Integer numberOfParts = 0;
+
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+        List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
+
+        for (Service service : services) {
+            numberOfParts += serviceTypeService.findNumberOfPartsForService(isDeleted, service);
+        }
+
+        session.disableFilter(SERVICE_FILTER);
+        return numberOfParts;
+    }
+
+    /**
+     * Retrieves a list of aggregated data for generating a pie chart.
+     * This method calculates revenue grouped by specific criteria (e.g., service invoice code)
+     * within the specified date range and based on the soft deletion status.
+     *
+     * @param isDeleted  a boolean flag indicating whether to include soft-deleted records (true) or not (false).
+     * @param twoDateDto an object containing the start and end dates for filtering the data.
+     * @return a list of {@code PieChartServiceDto} objects, where each object represents an individual
+     * segment of the pie chart with its name (e.g., invoice code) and value (e.g., revenue).
+     */
+    @Override
+    public List<PieChartServiceDto> getInfoForPieChart(boolean isDeleted, TwoDateDto twoDateDto) {
+        if (twoDateDto == null || twoDateDto.getStartDate() == null || twoDateDto.getEndDate() == null) {
+            throw new IllegalArgumentException("Start and end dates must not be null");
+        }
+
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+        List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
+        List<PieChartServiceDto> pieChartServiceDtos;
+
+        pieChartServiceDtos = services.stream()
+                .map(service -> {
+                    PieChartServiceDto pieChartServiceDto = new PieChartServiceDto();
+                    pieChartServiceDto.setInvoiceCode(service.getInvoiceCode());
+                    pieChartServiceDto.setRevenue(serviceTypeService.findRevenueForService(isDeleted, service));
+                    return pieChartServiceDto;
+                })
+                .collect(Collectors.toList());
+
+        session.disableFilter(SERVICE_FILTER);
+
+        return pieChartServiceDtos;
+    }
+
+    /**
+     * Retrieves revenue information for mechanics within a specified date range.
+     * Groups the total revenue by mechanic and returns a list of DTOs containing
+     * each mechanic's name and total revenue.
+     *
+     * @param isDeleted  a boolean indicating whether to include deleted services.
+     * @param twoDateDto an object containing the start and end dates for filtering services.
+     * @return a list of {@link PieChartMechanicDto} objects, each representing a mechanic and their total revenue.
+     * @throws IllegalArgumentException if the {@code twoDateDto} is null, or its start and end dates are null.
+     */
+    @Override
+    public List<PieChartMechanicDto> getInfoForMechanicPieChart(boolean isDeleted, TwoDateDto twoDateDto) {
+        if (twoDateDto == null || twoDateDto.getStartDate() == null || twoDateDto.getEndDate() == null) {
+            throw new IllegalArgumentException("Start and end dates must not be null");
+        }
+
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+
+        List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
+
+        Map<Long, Double> revenueByMechanic = services.stream()
+                .collect(Collectors.groupingBy(
+                        service -> service.getUser().getId(),
+                        Collectors.summingDouble(service -> serviceTypeService.findRevenueForService(isDeleted, service))
+                ));
+
+        List<PieChartMechanicDto> mechanicRevenueList = revenueByMechanic.entrySet().stream()
+                .map(entry -> {
+                    Long mechanicId = entry.getKey();
+                    Double revenue = entry.getValue();
+
+                    User user = userRepository.findById(mechanicId)
+                            .orElseThrow(() -> new IllegalArgumentException("Mechanic not found with ID: " + mechanicId));
+
+                    PieChartMechanicDto dto = new PieChartMechanicDto();
+                    dto.setMechanicName(user.getFirstname() + " " + user.getLastname());
+                    dto.setRevenue(revenue);
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        session.disableFilter(SERVICE_FILTER);
+
+        return mechanicRevenueList;
+    }
+
+    /**
+     * Retrieves data for a pie chart representing Customer information for revenue.
+     *
+     * @param isDeleted  a boolean indicating whether to include only deleted data (true)
+     *                   or non-deleted data (false) in the result.
+     * @param twoDateDto an object containing two date values that define the range for the data query.
+     *                   The range includes a start date and an end date.
+     * @return a list of {@link PieChartCustomerDto} objects, each representing data
+     * for a segment of the pie chart.
+     */
+    @Override
+    public List<PieChartCustomerDto> getInfoForCustomerPieChart(boolean isDeleted, TwoDateDto twoDateDto) {
+        if (twoDateDto == null || twoDateDto.getStartDate() == null || twoDateDto.getEndDate() == null) {
+            throw new IllegalArgumentException("Start and end dates must not be null");
+        }
+
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+
+        List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
+
+        Map<Long, Double> revenueByCustomer = services.stream()
+                .collect(Collectors.groupingBy(
+                        service -> service.getVehicle().getCustomer().getId(),
+                        Collectors.summingDouble(service -> serviceTypeService.findRevenueForService(isDeleted, service))
+                ));
+
+        List<PieChartCustomerDto> customerRevenueList = revenueByCustomer.entrySet().stream()
+                .map(entry -> {
+                    Long customerId = entry.getKey();
+                    Double revenue = entry.getValue();
+
+                    Customer customer = customerRepository.findById(customerId)
+                            .orElseThrow(() -> new IllegalArgumentException("Customer not found with ID: " + customerId));
+
+                    PieChartCustomerDto dto = new PieChartCustomerDto();
+                    dto.setCustomerName(customer.getFirstname() + " " + customer.getLastname());
+                    dto.setRevenue(revenue);
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        session.disableFilter(SERVICE_FILTER);
+
+        return customerRevenueList;
     }
 
     /**
@@ -223,11 +414,51 @@ public class ServiceServiceImpl implements ServiceService {
         Page<Service> resultPage = serviceCustomRepository.findFilteredServices(serviceFiltersQueryDto, PageRequest.of(page, pageSize));
         List<Service> services = resultPage.getContent();
 
+        List<ServiceDto> serviceDtos = new ArrayList<ServiceDto>();
+
+        for (Service service : services) {
+            ServiceDto serviceDto = serviceMapper.serviceToServiceDto(service);
+            serviceDto.setRevenuePerService(serviceTypeService.findRevenueForService(false, service));
+            service.getServiceTypes();
+            serviceDtos.add(serviceDto);
+        }
+
         session.disableFilter(SERVICE_FILTER);
 
-        List<ServiceDto> serviceDtos = serviceMapper.serviceToServiceDtos(services);
-
         return new PageImpl<>(serviceDtos, resultPage.getPageable(), resultPage.getTotalElements());
+    }
+
+    /**
+     * This method first calls the serviceRepository's findFilteredServices method
+     * to retrieve a Page of Service objects that match the query.
+     * It then iterates over the Service objects and retrieves the associated Vehicle and User objects
+     * using the getVehicle and getUser methods.
+     *
+     * @param isDeleted              boolean representing deleted objects
+     * @param serviceFiltersQueryDto {@link ServiceFiltersQueryDto} object which contains query parameters
+     * @param page                   int number of wanted page
+     * @param pageSize               number of results per page
+     * @return a Page of ServiceDto objects that match the specified query
+     */
+    @Override
+    public Page<ServiceWithUserDto> findFilteredServicesWithCustomers(boolean isDeleted, ServiceFiltersQueryDto serviceFiltersQueryDto, Integer page, Integer pageSize) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+
+        Page<Service> resultPage = serviceCustomRepository.findFilteredServicesWithCustomer(serviceFiltersQueryDto, PageRequest.of(page, pageSize));
+        List<Service> services = resultPage.getContent();
+
+        List<ServiceWithUserDto> serviceWithUserDto = new ArrayList<ServiceWithUserDto>();
+
+        for (Service service : services) {
+            ServiceWithUserDto serviceDto = serviceMapper.serviceToServiceWithUserDto(service);
+            serviceWithUserDto.add(serviceDto);
+        }
+
+        session.disableFilter(SERVICE_FILTER);
+
+        return new PageImpl<>(serviceWithUserDto, resultPage.getPageable(), resultPage.getTotalElements());
     }
 
     /**

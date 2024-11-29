@@ -1,11 +1,9 @@
 package com.mss.service;
 
 
-import com.mss.dto.LocalStorageUserDto;
-import com.mss.dto.PasswordChangeDto;
-import com.mss.dto.UserDto;
-import com.mss.dto.UserUpdateDto;
+import com.mss.dto.*;
 import com.mss.model.User;
+import org.springframework.data.domain.Page;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -28,6 +26,14 @@ public interface UserService {
      * @throws ResponseStatusException If a user with the specified email address is not found.
      */
     User findOneByEmail(String email);
+
+    /**
+     * Finds a user by their unique identifier.
+     *
+     * @param userId the unique identifier of the user to retrieve
+     * @return a {@link CustomerDto} representing the found user
+     */
+    UserDto findUserById(Long userId);
 
     /**
      * A method for retrieving all users implemented in UserServiceImpl class.
@@ -69,6 +75,14 @@ public interface UserService {
     UserUpdateDto updateUser(UserUpdateDto userUpdateDto);
 
     /**
+     * Update the user by admin from id.
+     *
+     *
+     * @return The UserUpdateDto object representing the authenticated user details.
+     */
+    UserUpdateDto updateUserByAdmin(UserUpdateDto userUpdateDto);
+
+    /**
      * Update the user associated with the current authentication context.
      *
      */
@@ -81,5 +95,15 @@ public interface UserService {
      */
     void deleteUser(Long userId);
 
-
+    /**
+     * This method first calls the userRepository's findFilteredUsers method
+     * to retrieve a Page of User objects that match the query.
+     *
+     * @param userFiltersQueryDto {@link UserFiltersQueryDto} object which contains query parameters
+     * @param isDeleted               boolean representing deleted objects
+     * @param page                    int number of wanted page
+     * @param pageSize                number of results per page
+     * @return a Page of UsersDto objects that match the specified query
+     */
+    Page<UserDto> findFilteredUsers(boolean isDeleted, UserFiltersQueryDto userFiltersQueryDto, Integer page, Integer pageSize);
 }

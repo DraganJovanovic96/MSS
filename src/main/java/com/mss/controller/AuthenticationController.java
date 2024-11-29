@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 /**
  * Controller class for handling authentication-related API endpoints.
@@ -71,9 +72,10 @@ public class AuthenticationController {
      * @throws ResponseStatusException if the verification code is invalid, expired, or if the user is already verified
      */
     @PostMapping("/verification")
-    public ResponseEntity<AuthenticationResponseDto> verifyUser(@RequestParam String token) {
+    public ResponseEntity<AuthenticationResponseDto> verifyUser(@RequestParam String token,
+                                                                @RequestParam String email) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(service.verifyUser(token));
+                .body(service.verifyUser(token, email));
     }
 
     /**
@@ -90,7 +92,7 @@ public class AuthenticationController {
             service.resendVerificationCode(emailRequestDto.getEmail());
             return ResponseEntity.status(HttpStatus.OK)
                     .body("Verification code sent");
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | UnsupportedEncodingException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -107,11 +109,12 @@ public class AuthenticationController {
     public ResponseEntity<?> sendPasswordResetCode(@RequestBody EmailRequestDto emailRequestDto) {
         try {
             service.setPasswordResetCode(emailRequestDto);
-            service.sendResetPasswordLink(emailRequestDto.getEmail());
             return ResponseEntity.status(HttpStatus.OK)
                     .body("Password reset code sent");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -130,9 +133,10 @@ public class AuthenticationController {
     @PostMapping("/reset-password")
     public ResponseEntity<AuthenticationResponseDto> resetPassword(
             @RequestParam String token,
+            @RequestParam String email,
             @RequestBody PasswordResetDto passwordResetDto) {
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(service.resetPassword(token, passwordResetDto));
+                .body(service.resetPassword(token, email, passwordResetDto));
     }
 }

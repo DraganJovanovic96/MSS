@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.List;
 
 /**
  * A Data Transfer Object (DTO) for transferring benefit data between layers of the application.
@@ -15,7 +14,7 @@ import java.util.List;
  * @since 1.0
  */
 @Data
-public class ServiceDto extends BaseEntityDto {
+public class ServiceWithUserDto extends BaseEntityDto {
     /**
      * The invoice code for the service.
      */
@@ -27,29 +26,9 @@ public class ServiceDto extends BaseEntityDto {
     private LocalDate startDate;
 
     /**
-     * The end date of the service.
-     */
-    private LocalDate endDate;
-
-    /**
-     * Current mileage on the vehicle.
-     */
-    private int currentMileage;
-
-    /**
-     * Recommended mileage for next service.
-     */
-    private int nextServiceMileage;
-
-    /**
-     * Revenue per service.
-     */
-    private double revenuePerService;
-
-    /**
      * The vehicle service is provided on.
      */
-    @JsonIgnoreProperties({"customerDto", "serviceDtos"})
+    @JsonIgnoreProperties({"serviceDtos"})
     private VehicleDto vehicleDto;
 
     /**
@@ -57,9 +36,4 @@ public class ServiceDto extends BaseEntityDto {
      */
     @JsonIgnoreProperties("serviceDtos")
     private UserDto userDto;
-
-    /**
-     * Service types connected to service.
-     */
-    private List<ServiceTypeDto> serviceTypeDtos;
 }

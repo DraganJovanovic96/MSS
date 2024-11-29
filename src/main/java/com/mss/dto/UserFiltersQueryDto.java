@@ -3,11 +3,9 @@ package com.mss.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * The CustomerFiltersQueryDto class represents a data transfer object that contains query attributes for filtering Customer entities.
- * These attributes include the Customer's first and last name, address,phoneNumber and vehicles.
+ * The UserFiltersQueryDto class represents a data transfer object that contains query attributes for filtering User entities.
+ * These attributes include the User's first and last name, email, address and phone number.
  * <p>
  * The class also uses Jackson's @JsonProperty annotation to specify the JSON property names for each attribute.
  *
@@ -16,7 +14,7 @@ import java.util.List;
  * @since 1.0
  */
 @Data
-public class CustomerFiltersQueryDto {
+public class UserFiltersQueryDto {
     /**
      * The customer's full name.
      */
@@ -30,11 +28,10 @@ public class CustomerFiltersQueryDto {
     private String address;
 
     /**
-     * The customer's email.
+     * The customer's address.
      */
     @JsonProperty("email")
     private String email;
-
 
     /**
      * The customer's phoneNumber.
@@ -47,10 +44,4 @@ public class CustomerFiltersQueryDto {
      */
     @JsonProperty("isDeleted")
     private boolean isDeleted;
-
-    /**
-     * The customer's vehicles.
-     */
-    @JsonProperty("vehicleIds")
-    private List<Long> vehicleIds;
 }

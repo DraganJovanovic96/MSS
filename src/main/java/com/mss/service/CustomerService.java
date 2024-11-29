@@ -82,7 +82,7 @@ public interface CustomerService {
      * @param isDeleted               boolean representing deleted objects
      * @param page                    int number of wanted page
      * @param pageSize                number of results per page
-     * @return a Page of ServiceDto objects that match the specified query
+     * @return a Page of CustomerDto objects that match the specified query
      */
     Page<CustomerDto> findFilteredCustomers(boolean isDeleted, CustomerFiltersQueryDto customerFiltersQueryDto, Integer page, Integer pageSize);
 

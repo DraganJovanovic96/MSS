@@ -18,12 +18,20 @@ import java.util.Optional;
  */
 public interface ServiceTypeRepository extends JpaRepository<ServiceType, Long> {
     /**
-     * Find a service type by their id if they are not soft deleted.
+     * Find a service type by their id if they are not softly deleted.
      *
      * @param serviceTypeId the id of the service type
      * @return an Optional containing the service type if found, or empty if not
      */
     Optional<ServiceType> findOneById(Long serviceTypeId);
+
+    /**
+     * Find all service types by their service id if they are not softly deleted.
+     *
+     * @param serviceId the id of the service
+     * @return a List containing service types
+     */
+    List<ServiceType> findAllByServiceId(Long serviceId);
 
     /**
      * Finds all service types that are marked as deleted.

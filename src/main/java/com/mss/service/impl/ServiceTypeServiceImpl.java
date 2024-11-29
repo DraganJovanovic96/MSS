@@ -155,6 +155,56 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
     }
 
     /**
+     * Finds a service type by their unique identifier.
+     *
+     * @param service service with data
+     * @return a revenue from one service
+     */
+    @Override
+    public double findRevenueForService(boolean isDeleted, Service service) {
+        double revenueOfService = 0;
+
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_TYPE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+        List<ServiceType> serviceTypes = serviceTypeRepository.findAllByServiceId(service.getId());
+
+        for (ServiceType serviceType : serviceTypes) {
+            revenueOfService += serviceType.getPrice() * serviceType.getQuantity();
+        }
+
+        session.disableFilter(SERVICE_TYPE_FILTER);
+
+        return revenueOfService;
+    }
+
+    /**
+     * Finds a number of parts for service.
+     *
+     * @param service   service with data
+     * @return a revenue from one service
+     */
+    @Override
+    public Integer findNumberOfPartsForService(boolean isDeleted, Service service) {
+        Integer parts = 0;
+
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_TYPE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+        List<ServiceType> serviceTypes = serviceTypeRepository.findAllByServiceId(service.getId());
+
+        for (ServiceType serviceType : serviceTypes) {
+            if (serviceType.getPartCode() != null) {
+                parts++;
+            }
+        }
+
+        session.disableFilter(SERVICE_TYPE_FILTER);
+
+        return parts;
+    }
+
+    /**
      * A method for performing soft delete of service type entity. It is implemented in ServiceTypeController class.
      *
      * @param serviceTypeId parameter that is unique to entity

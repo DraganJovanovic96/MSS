@@ -141,12 +141,40 @@ public class ServiceController {
     }
 
     /**
+     * The getServices method is a REST endpoint that returns a ResponseEntity containing a List of ServiceDto.
+     * This method accepts an optional serviceFiltersQueryDto object as a request body, which contains the query attributes for filtering Service entities.
+     * It also accepts an optional pageNo parameter as a query parameter, which specifies the page number to retrieve, and numberOfResultsPerPage
+     * which specifies number of results per page.
+     *
+     * @param serviceFiltersQueryDto contains parameters based on data will be filtered
+     * @param page                   number of wanted page
+     * @param pageSize               number of wanted results per page
+     * @return ResponseEntity<List> - The HTTP response containing a list of {@link ServiceDto} objects as the response body
+     */
+    @PostMapping("/search-with-customer")
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
+    @ApiOperation(value = "Get all/filtered services")
+    @ApiResponse(code = 200, message = "Requests data successfully fetched.")
+    public ResponseEntity<List<ServiceWithUserDto>> getServicesWithCustomer(@RequestBody(required = false) ServiceFiltersQueryDto serviceFiltersQueryDto,
+                                                        @RequestParam(value = "page", defaultValue = "0") int page,
+                                                        @RequestParam(value = "pageSize", defaultValue = "5") int pageSize) {
+        Page<ServiceWithUserDto> resultPage = serviceService.findFilteredServicesWithCustomers(serviceFiltersQueryDto.isDeleted(), serviceFiltersQueryDto, page, pageSize);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Total-Items", String.valueOf(resultPage.getTotalElements()));
+        headers.add("X-Total-Pages", String.valueOf(resultPage.getTotalPages()));
+        headers.add("X-Current-Page", String.valueOf(resultPage.getNumber()));
+
+        return new ResponseEntity<>(resultPage.getContent(), headers, HttpStatus.OK);
+    }
+
+    /**
      * Updates the customer with the information provided in the ServiceUpdateDto.
      *
      * @param serviceUpdateDto The ServiceUpdateDto containing the service information
      * @return The ResponseEntity containing the updated ServiceDto
      */
-    @PutMapping(value = "/id/{serviceId}",consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/id/{serviceId}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('admin:update', 'user:update')")
     @ApiOperation(value = "Update service through ServiceCreateDto")
     @ApiResponses(value = {

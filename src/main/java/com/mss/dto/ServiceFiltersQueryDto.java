@@ -37,6 +37,12 @@ public class ServiceFiltersQueryDto {
     private LocalDate startDate;
 
     /**
+     * Query attribute for Service's end of start date.
+     */
+    @JsonProperty("startDateEnd")
+    private LocalDate startDateEnd;
+
+    /**
      * Query attribute for Service's end date.
      */
     @JsonProperty("endDate")
@@ -53,4 +59,10 @@ public class ServiceFiltersQueryDto {
      */
     @JsonProperty("userId")
     private Long userId;
+
+    /**
+     * Query attribute for Service's customers.
+     */
+    @JsonProperty("customerId")
+    private Long customerId;
 }

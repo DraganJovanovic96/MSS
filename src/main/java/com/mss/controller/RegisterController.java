@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * Controller for handling user registration.
  *
@@ -35,7 +37,7 @@ public class RegisterController {
     @PreAuthorize("hasAnyAuthority('admin:create')")
     public ResponseEntity<AuthenticationResponseDto> register(
             @RequestBody RegisterRequestDto request
-    ) {
+    ) throws UnsupportedEncodingException {
         return ResponseEntity.ok(service.register(request));
     }
 }
