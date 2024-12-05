@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -75,6 +76,10 @@ public class AuthenticationService {
      * The length of password code.
      */
     private static final int CODE_LENGTH = 64;
+
+    @Value("${spring.frontend.url}")
+    private String frontendUrl;
+
 
     /**
      * Registers a new user.
@@ -305,7 +310,7 @@ public class AuthenticationService {
     public void sendVerificationEmail(String token, String email) throws UnsupportedEncodingException {
         String subject = "MSS Account Verification";
 
-        String verificationLink = "http://localhost:4200/verify?token=" +
+        String verificationLink = frontendUrl + "verify?token=" +
                 URLEncoder.encode(token, "UTF-8") +
                 "&email=" + URLEncoder.encode(email, "UTF-8");
 
@@ -414,7 +419,7 @@ public class AuthenticationService {
         User user = repository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User doesn't exist"));
 
-        String resetLink = "http://localhost:4200/reset-password?token=" +
+        String resetLink = frontendUrl + "reset-password?token=" +
                 URLEncoder.encode(generatedToken, "UTF-8") +
                 "&email=" + URLEncoder.encode(email, "UTF-8");
 
