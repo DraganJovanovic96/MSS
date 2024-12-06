@@ -121,7 +121,7 @@ public class AuthenticationService {
         String generatedToken = generateVerificationCode();
 
         user.setPasswordCode(passwordEncoder.encode(generatedToken));
-        user.setPasswordCodeExpiration(LocalDateTime.now().plusMinutes(10));
+        user.setPasswordCodeExpiration(LocalDateTime.now().plusMinutes(60));
         revokeAllUserTokens(user);
         repository.save(user);
         sendResetPasswordLink(emailRequestDto.getEmail(), generatedToken);
