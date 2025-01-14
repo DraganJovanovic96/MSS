@@ -150,7 +150,7 @@ public class PdfServiceImpl implements PdfService {
 
         Table table = new Table(columnWidths);
         Cell titleCell = new Cell()
-                .add(new Paragraph("INVOICE")
+                .add(new Paragraph("RAČUN")
                         .setFontSize(20))
                 .setBold()
                 .setTextAlignment(TextAlignment.LEFT)
@@ -158,9 +158,9 @@ public class PdfServiceImpl implements PdfService {
                 .setPaddingTop(20);
 
         Paragraph invoiceDetails = new Paragraph()
-                .add(new Paragraph("Invoice no:").setFontSize(14).setBold())
+                .add(new Paragraph("Št. računa:").setFontSize(14).setBold())
                 .add(service.getInvoiceCode() + "\n").setFontSize(14)
-                .add(new Paragraph("Date: ").setFontSize(14).setBold())
+                .add(new Paragraph("Datum: ").setFontSize(14).setBold())
                 .add(new Paragraph(formatLocalDate(LocalDate.now())).setFontSize(14))
                 .setTextAlignment(TextAlignment.RIGHT);
 
@@ -226,16 +226,16 @@ public class PdfServiceImpl implements PdfService {
      * @param customer the customer object containing billing information.
      */
     private void addBillingInformation(Document document, Customer customer) {
-        document.add(new Paragraph("\nBilling Information").setBold());
+        document.add(new Paragraph("\nPodatki o zaračunavanju").setBold());
 
         float[] columnWidths = {280f, 280f};
         Table table = new Table(columnWidths);
 
         table.addCell(new Cell()
-                .add(new Paragraph("Name:").setBold())
+                .add(new Paragraph("Ime:").setBold())
                 .setBorder(Border.NO_BORDER));
         table.addCell(new Cell()
-                .add(new Paragraph("Company Name:").setBold().setTextAlignment(TextAlignment.RIGHT))
+                .add(new Paragraph("Ime podjetja:").setBold().setTextAlignment(TextAlignment.RIGHT))
                 .setBorder(Border.NO_BORDER));
 
         table.addCell(new Cell()
@@ -246,10 +246,10 @@ public class PdfServiceImpl implements PdfService {
                         .setTextAlignment(TextAlignment.RIGHT))
                 .setBorder(Border.NO_BORDER));
         table.addCell(new Cell()
-                .add(new Paragraph(("Address:")).setBold())
+                .add(new Paragraph(("Naslov:")).setBold())
                 .setBorder(Border.NO_BORDER));
         table.addCell(new Cell()
-                .add(new Paragraph("Company Address:")
+                .add(new Paragraph("Naslov podjetja:")
                         .setBold())
                 .setBorder(Border.NO_BORDER)
                 .setTextAlignment(TextAlignment.RIGHT));
@@ -257,14 +257,14 @@ public class PdfServiceImpl implements PdfService {
                 .add(new Paragraph(customer.getAddress()))
                 .setBorder(Border.NO_BORDER));
         table.addCell(new Cell()
-                .add(new Paragraph("4 Privet Drive"))
+                .add(new Paragraph("Brez naslova"))
                 .setBorder(Border.NO_BORDER)
                 .setTextAlignment(TextAlignment.RIGHT));
         table.addCell(new Cell()
-                .add(new Paragraph(("Phone:")).setBold())
+                .add(new Paragraph(("Telefon:")).setBold())
                 .setBorder(Border.NO_BORDER));
         table.addCell(new Cell()
-                .add(new Paragraph(("Company Phone:")).setBold())
+                .add(new Paragraph(("Telefon podjetja:")).setBold())
                 .setBorder(Border.NO_BORDER)
                 .setTextAlignment(TextAlignment.RIGHT));
         table.addCell(new Cell()
@@ -288,25 +288,25 @@ public class PdfServiceImpl implements PdfService {
         float[] columnWidths = {142.5F, 142.5F, 142.5F, 142.5F};
         Table serviceTable = new Table(columnWidths);
         serviceTable.addHeaderCell(new Cell()
-                .add(new Paragraph("Description")
+                .add(new Paragraph("Opis")
                         .setTextAlignment(TextAlignment.CENTER))
                 .setBorder(Border.NO_BORDER)
                 .setBackgroundColor(new DeviceGray(0f), 0.7f)
                 .setFontColor(new DeviceGray(1.0f)));
         serviceTable.addHeaderCell(new Cell()
-                .add(new Paragraph("Type of service")
+                .add(new Paragraph("Vrsta storitve")
                         .setTextAlignment(TextAlignment.CENTER))
                 .setBorder(Border.NO_BORDER)
                 .setBackgroundColor(new DeviceGray(0f), 0.7f)
                 .setFontColor(new DeviceGray(1.0f)));
         serviceTable.addHeaderCell(new Cell()
-                .add(new Paragraph("Quantity")
+                .add(new Paragraph("Količina")
                         .setTextAlignment(TextAlignment.CENTER))
                 .setBorder(Border.NO_BORDER)
                 .setBackgroundColor(new DeviceGray(0f), 0.7f)
                 .setFontColor(new DeviceGray(1.0f)));
         serviceTable.addHeaderCell(new Cell()
-                .add(new Paragraph("Price in €")
+                .add(new Paragraph("Cena v €")
                         .setTextAlignment(TextAlignment.RIGHT))
                 .setBorder(Border.NO_BORDER)
                 .setBackgroundColor(new DeviceGray(0f), 0.7f)
@@ -371,19 +371,19 @@ public class PdfServiceImpl implements PdfService {
             document.add(new AreaBreak());
         }
 
-        document.add(new Paragraph("If you have any question about this invoice please contact: \n")
+        document.add(new Paragraph("Če imate kakršnakoli vprašanja glede tega računa, prosim kontaktirajte: \n")
                 .setTextAlignment(TextAlignment.LEFT)
                 .setMarginBottom(2));
 
-        document.add(new Paragraph("Name: Darko")
+        document.add(new Paragraph("Ime: Darko")
                 .setTextAlignment(TextAlignment.LEFT)
                 .setMarginBottom(2));
 
-        document.add(new Paragraph("Phone: 0618367218")
+        document.add(new Paragraph("Telefon: 0618367218")
                 .setTextAlignment(TextAlignment.LEFT)
                 .setMarginBottom(2));
 
-        document.add(new Paragraph("E-mail: darkoneki@gmail.com")
+        document.add(new Paragraph("E-pošta: darko@gmail.com")
                 .setTextAlignment(TextAlignment.LEFT)
                 .setMarginBottom(2));
     }

@@ -20,4 +20,10 @@ public class CountsDto {
      * Represented as an {@code Integer} since parts are typically whole numbers.
      */
     private Integer parts;
+
+    /**
+     * The total count of services used or available.
+     * Represented as an {@code Integer}.
+     */
+    private Integer services;
 }

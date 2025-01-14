@@ -47,6 +47,7 @@ public class RevenueController {
         CountsDto counts = new CountsDto();
         counts.setRevenue(serviceService.getRevenue(false,twoDateDto));
         counts.setParts(serviceService.getParts(false, twoDateDto));
+        counts.setServices(serviceService.getServicesForCount(false, twoDateDto));
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(counts);

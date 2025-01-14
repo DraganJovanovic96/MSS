@@ -25,6 +25,16 @@ public interface ServiceService {
     long getServiceCount(boolean isDeleted);
 
     /**
+     * Counts the number of services based on their deletion status.
+     *
+     * @param isDeleted A boolean indicating the deletion status of services to be counted.
+     *                  If {@code true}, counts only deleted services.
+     *                  If {@code false}, counts only active services.
+     * @return The total number of services matching the specified deletion status.
+     */
+    Integer getServicesForCount(boolean isDeleted, TwoDateDto twoDateDto);
+
+    /**
      * Gets the revenue based on two dates.
      *
      * @param isDeleted A boolean indicating the deletion status of services to be counted.
