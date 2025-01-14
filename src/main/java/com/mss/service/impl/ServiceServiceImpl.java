@@ -114,6 +114,26 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
     /**
+     * Counts the number of services based on their deletion status.
+     *
+     * @param isDeleted A boolean indicating the deletion status of services to be counted.
+     *                  If {@code true}, counts only deleted services.
+     *                  If {@code false}, counts only active services.
+     * @return The total number of services matching the specified deletion status.
+     */
+    @Override
+    public Integer getServicesForCount(boolean isDeleted, TwoDateDto twoDateDto) {
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(SERVICE_FILTER);
+        filter.setParameter("isDeleted", isDeleted);
+        List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
+
+        session.disableFilter(SERVICE_FILTER);
+
+        return services.size();
+    }
+
+    /**
      * Gets the revenue based on two dates.
      *
      * @param isDeleted  A boolean indicating the deletion status of services to be counted.
