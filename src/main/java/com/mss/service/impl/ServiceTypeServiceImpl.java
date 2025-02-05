@@ -134,6 +134,10 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
         serviceType.setQuantity(serviceTypeUpdateDto.getQuantity());
         serviceType.setService(service);
 
+        if (!serviceTypeUpdateDto.getDeleted()) {
+            serviceType.setDeletedAt(null);
+        }
+
         serviceTypeRepository.save(serviceType);
         entityManager.flush();
         return serviceTypeMapper.serviceTypeToServiceTypeDto(serviceType);

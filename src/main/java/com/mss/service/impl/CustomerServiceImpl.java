@@ -287,20 +287,27 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setPhoneNumber(customerUpdateDto.getPhoneNumber());
         customer.setDeleted(customerUpdateDto.getDeleted());
 
+        if (!customerUpdateDto.getDeleted()) {
+            customer.setDeletedAt(null);
+        }
+
         for (Vehicle vehicle : customer.getVehicles()) {
             if (Boolean.TRUE.equals(vehicle.getDeletedByCascade()) && Boolean.TRUE.equals(vehicle.getDeleted())) {
                 vehicle.setDeleted(false);
                 vehicle.setDeletedByCascade(false);
+                vehicle.setDeletedAt(null);
 
                 for (com.mss.model.Service service : vehicle.getServices()) {
                     if (Boolean.TRUE.equals(service.getDeletedByCascade()) && Boolean.TRUE.equals(service.getDeleted())) {
                         service.setDeleted(false);
                         service.setDeletedByCascade(false);
+                        service.setDeletedAt(null);
 
                         for (ServiceType serviceType : service.getServiceTypes()) {
                             if (Boolean.TRUE.equals(serviceType.getDeletedByCascade()) && Boolean.TRUE.equals(serviceType.getDeleted())) {
                                 serviceType.setDeleted(false);
                                 serviceType.setDeletedByCascade(false);
+                                serviceType.setDeletedAt(null);
                                 serviceTypeRepository.save(serviceType);
                             }
                         }
@@ -310,6 +317,7 @@ public class CustomerServiceImpl implements CustomerService {
                 vehicleRepository.save(vehicle);
             }
         }
+
         customerRepository.save(customer);
         entityManager.flush();
 

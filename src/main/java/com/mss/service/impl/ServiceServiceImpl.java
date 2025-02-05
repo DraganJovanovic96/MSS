@@ -499,7 +499,7 @@ public class ServiceServiceImpl implements ServiceService {
      */
     @Override
     @Transactional
-    public ServiceDto updateCustomer(ServiceUpdateDto serviceUpdateDto) {
+    public ServiceDto updateService(ServiceUpdateDto serviceUpdateDto) {
         Service service = serviceRepository.findOneById(serviceUpdateDto.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, " Service with this id doesn't exist"));
 
@@ -518,10 +518,15 @@ public class ServiceServiceImpl implements ServiceService {
         service.setVehicle(vehicle);
         service.setUser(user);
 
+        if (!serviceUpdateDto.getDeleted()) {
+            service.setDeletedAt(null);
+        }
+
         for (ServiceType serviceType : service.getServiceTypes()) {
             if (Boolean.TRUE.equals(serviceType.getDeletedByCascade()) && Boolean.TRUE.equals(serviceType.getDeleted())) {
                 serviceType.setDeleted(false);
                 serviceType.setDeletedByCascade(false);
+                serviceType.setDeletedAt(null);
                 serviceTypeRepository.save(serviceType);
             }
         }

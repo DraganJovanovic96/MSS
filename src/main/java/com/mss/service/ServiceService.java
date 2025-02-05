@@ -159,5 +159,5 @@ public interface ServiceService {
      * @param serviceUpdateDto a DTO containing the updated details of the service
      * @return {@link ServiceDto} the updated service data, encapsulated in a DTO for response
      */
-    ServiceDto updateCustomer(ServiceUpdateDto serviceUpdateDto);
+    ServiceDto updateService(ServiceUpdateDto serviceUpdateDto);
 }
