@@ -391,6 +391,7 @@ public class ServiceServiceImpl implements ServiceService {
      * @param serviceId parameter that is unique to entity
      */
     @Override
+    @Transactional
     public void deleteService(Long serviceId) {
         serviceRepository.findById(serviceId)
                 .map(service -> {
@@ -398,12 +399,17 @@ public class ServiceServiceImpl implements ServiceService {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Service is already deleted.");
                     }
 
+                    Instant now = Instant.now();
+
                     for (ServiceType serviceType : service.getServiceTypes()) {
                         if (Boolean.FALSE.equals(serviceType.getDeleted()) && Boolean.FALSE.equals(serviceType.getDeletedByCascade())) {
                             serviceType.setDeletedByCascade(true);
+                            serviceType.setDeletedAt(now);
                             serviceTypeRepository.save(serviceType);
                         }
                     }
+                    service.setDeletedAt(now);
+                    entityManager.flush();
                     return service;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service is not found."));

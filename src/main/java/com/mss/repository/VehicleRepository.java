@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,6 +58,15 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     List<Vehicle> findAllDeletedVehicles();
 
     /**
+     * Finds all vehicles that are marked as deleted and have been deleted for longer than one week.
+     *
+     * @param oneWeekAgo The date and time representing one week ago.
+     * @return A list of vehicles that have been deleted for longer than one week.
+     */
+    @Query("SELECT v FROM Vehicle v WHERE v.deleted = true AND v.deletedAt <= :oneWeekAgo")
+    List<Vehicle> findVehiclesDeletedOlderThanOneWeek(@Param("oneWeekAgo") Instant oneWeekAgo);
+
+    /**
      * Permanently deletes a Vehicle entity from the database by its ID.
      *
      * <p>This method executes a DELETE operation on the Vehicle entity,
@@ -67,4 +78,14 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     @Modifying
     @Query("DELETE FROM Vehicle v WHERE v.id = :vehicleId")
     void permanentlyDeleteVehicleById(Long vehicleId);
+
+    /**
+     * Permanently deletes specific Vehicle entities provided as a list.
+     *
+     * @param deletedVehicleIds The list of Vehicle IDs to be permanently deleted.
+     */
+    @Modifying
+    @Query("DELETE FROM Vehicle v WHERE v.id IN :deletedVehicleIds")
+    void permanentlyDeleteAllDeletedVehicles(List<Long> deletedVehicleIds);
+
 }

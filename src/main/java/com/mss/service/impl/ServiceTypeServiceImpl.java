@@ -210,6 +210,7 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
      * @param serviceTypeId parameter that is unique to entity
      */
     @Override
+    @Transactional
     public void deleteServiceType(Long serviceTypeId) {
         serviceTypeRepository.findById(serviceTypeId)
                 .map(service -> {
@@ -217,6 +218,10 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Service Type is already deleted.");
                     }
 
+                    Instant now = Instant.now();
+
+                    service.setDeletedAt(now);
+                    entityManager.flush();
                     return service;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service Type is not found."));

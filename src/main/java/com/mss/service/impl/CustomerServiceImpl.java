@@ -196,6 +196,8 @@ public class CustomerServiceImpl implements CustomerService {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer is already deleted.");
                     }
 
+                    Instant now = Instant.now();
+
                     for (Vehicle vehicle : customer.getVehicles()) {
                         if (Boolean.FALSE.equals(vehicle.getDeleted()) && Boolean.FALSE.equals(vehicle.getDeletedByCascade())) {
 
@@ -205,18 +207,22 @@ public class CustomerServiceImpl implements CustomerService {
                                     for (ServiceType serviceType : service.getServiceTypes()) {
                                         if (Boolean.FALSE.equals(serviceType.getDeleted()) && Boolean.FALSE.equals(serviceType.getDeletedByCascade())) {
                                             serviceType.setDeletedByCascade(true);
+                                            serviceType.setDeletedAt(now);
                                             serviceTypeRepository.save(serviceType);
                                         }
                                     }
                                     service.setDeletedByCascade(true);
+                                    service.setDeletedAt(now);
                                     serviceRepository.save(service);
                                 }
                             }
                             vehicle.setDeletedByCascade(true);
+                            vehicle.setDeletedAt(now);
                             vehicleRepository.save(vehicle);
                         }
                     }
 
+                    customer.setDeletedAt(now);
                     entityManager.flush();
                     return customer;
                 })

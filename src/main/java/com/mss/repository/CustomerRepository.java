@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,6 +76,15 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     List<Customer> findAllDeletedCustomers();
 
     /**
+     * Finds all customers that are marked as deleted and have been deleted for longer than one week.
+     *
+     * @param oneWeekAgo The date and time representing one week ago.
+     * @return A list of customers who have been deleted for longer than one week.
+     */
+    @Query("SELECT c FROM Customer c WHERE c.deleted = true AND c.deletedAt <= :oneWeekAgo")
+    List<Customer> findCustomersDeletedOlderThanOneWeek(@Param("oneWeekAgo") Instant oneWeekAgo);
+
+    /**
      * Permanently deletes a Customer entity from the database by its ID.
      *
      * <p>This method executes a DELETE operation on the Customer entity,
@@ -85,4 +96,13 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     @Modifying
     @Query("DELETE FROM Customer c WHERE c.id = :customerId")
     void permanentlyDeleteCustomerById(Long customerId);
+
+    /**
+     * Permanently deletes specific Customer entities provided as a list.
+     *
+     * @param deletedCustomerIds The list of Customer IDs to be permanently deleted.
+     */
+    @Modifying
+    @Query("DELETE FROM Customer c WHERE c.id IN :deletedCustomerIds")
+    void permanentlyDeleteAllDeletedCustomers(List<Long> deletedCustomerIds);
 }
