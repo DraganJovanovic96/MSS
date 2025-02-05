@@ -134,6 +134,10 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
         serviceType.setQuantity(serviceTypeUpdateDto.getQuantity());
         serviceType.setService(service);
 
+        if (!serviceTypeUpdateDto.getDeleted()) {
+            serviceType.setDeletedAt(null);
+        }
+
         serviceTypeRepository.save(serviceType);
         entityManager.flush();
         return serviceTypeMapper.serviceTypeToServiceTypeDto(serviceType);
@@ -210,6 +214,7 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
      * @param serviceTypeId parameter that is unique to entity
      */
     @Override
+    @Transactional
     public void deleteServiceType(Long serviceTypeId) {
         serviceTypeRepository.findById(serviceTypeId)
                 .map(service -> {
@@ -217,6 +222,10 @@ public class ServiceTypeServiceImpl implements ServiceTypeService {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Service Type is already deleted.");
                     }
 
+                    Instant now = Instant.now();
+
+                    service.setDeletedAt(now);
+                    entityManager.flush();
                     return service;
                 })
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Service Type is not found."));

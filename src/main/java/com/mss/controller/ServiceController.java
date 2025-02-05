@@ -183,6 +183,6 @@ public class ServiceController {
     })
     public ResponseEntity<ServiceDto> updateService(@Valid @RequestBody ServiceUpdateDto serviceUpdateDto) {
         return ResponseEntity.status(HttpStatus.OK)
-                .body(serviceService.updateCustomer(serviceUpdateDto));
+                .body(serviceService.updateService(serviceUpdateDto));
     }
 }

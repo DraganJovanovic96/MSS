@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,6 +63,16 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     List<Service> findAllDeletedServices();
 
     /**
+     * Finds all services that are marked as deleted and have been deleted for longer than one week.
+     *
+     * @param oneWeekAgo The date and time representing one week ago.
+     * @return A list of services that have been deleted for longer than one week.
+     */
+    @Query("SELECT s FROM Service s WHERE s.deleted = true AND s.deletedAt <= :oneWeekAgo")
+    List<Service> findServicesDeletedOlderThanOneWeek(@Param("oneWeekAgo") Instant oneWeekAgo);
+
+
+    /**
      * Permanently deletes a Service entity from the database by its ID.
      *
      * <p>This method executes a DELETE operation on the Service entity,
@@ -72,4 +84,13 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     @Modifying
     @Query("DELETE FROM Service s WHERE s.id = :serviceId")
     void permanentlyDeleteServiceById(Long serviceId);
+
+    /**
+     * Permanently deletes specific Service entities provided as a list.
+     *
+     * @param deletedServices The list of Service entities to be permanently deleted.
+     */
+    @Modifying
+    @Query("DELETE FROM Service s WHERE s.id IN :deletedServices")
+    void permanentlyDeleteAllDeletedServices(List<Long> deletedServices);
 }
