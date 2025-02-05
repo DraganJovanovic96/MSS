@@ -43,6 +43,12 @@ public abstract class BaseEntity<T> {
     private Boolean deleted = false;
 
     /**
+     * Indicates when the entity was deleted.
+     */
+    @Column
+    private Instant deletedAt;
+
+    /**
      * Indicates whether the entity has been deleted by cascade.
      */
     @Column

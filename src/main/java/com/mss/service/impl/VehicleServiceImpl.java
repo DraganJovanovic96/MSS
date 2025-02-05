@@ -178,19 +178,24 @@ public class VehicleServiceImpl implements VehicleService {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vehicle is already deleted.");
                     }
 
+                    Instant now = Instant.now();
+
                     for (com.mss.model.Service service : vehicle.getServices()) {
                         if (Boolean.FALSE.equals(service.getDeleted())) {
 
                             for (ServiceType serviceType : service.getServiceTypes()) {
                                 if (Boolean.FALSE.equals(serviceType.getDeleted()) && Boolean.FALSE.equals(serviceType.getDeletedByCascade())) {
                                     serviceType.setDeletedByCascade(true);
+                                    serviceType.setDeletedAt(now);
                                     serviceTypeRepository.save(serviceType);
                                 }
                             }
                             service.setDeletedByCascade(true);
+                            service.setDeletedAt(now);
                             serviceRepository.save(service);
                         }
                     }
+                    vehicle.setDeletedAt(now);
                     entityManager.flush();
                     return vehicle;
                 })
@@ -230,15 +235,21 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.setVin(vehicleUpdateDto.getVin().toUpperCase());
         vehicle.setCustomer(customer);
 
+        if (!vehicleUpdateDto.getDeleted()) {
+            vehicle.setDeletedAt(null);
+        }
+
         for (com.mss.model.Service service : vehicle.getServices()) {
             if (Boolean.TRUE.equals(service.getDeletedByCascade()) && Boolean.TRUE.equals(service.getDeleted())) {
                 service.setDeleted(false);
                 service.setDeletedByCascade(false);
+                service.setDeletedAt(null);
 
                 for (ServiceType serviceType : service.getServiceTypes()) {
                     if (Boolean.TRUE.equals(serviceType.getDeletedByCascade()) && Boolean.TRUE.equals(serviceType.getDeleted())) {
                         serviceType.setDeleted(false);
                         serviceType.setDeletedByCascade(false);
+                        serviceType.setDeletedAt(null);
                         serviceTypeRepository.save(serviceType);
                     }
                 }

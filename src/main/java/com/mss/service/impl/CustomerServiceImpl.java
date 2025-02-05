@@ -196,6 +196,8 @@ public class CustomerServiceImpl implements CustomerService {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer is already deleted.");
                     }
 
+                    Instant now = Instant.now();
+
                     for (Vehicle vehicle : customer.getVehicles()) {
                         if (Boolean.FALSE.equals(vehicle.getDeleted()) && Boolean.FALSE.equals(vehicle.getDeletedByCascade())) {
 
@@ -205,18 +207,22 @@ public class CustomerServiceImpl implements CustomerService {
                                     for (ServiceType serviceType : service.getServiceTypes()) {
                                         if (Boolean.FALSE.equals(serviceType.getDeleted()) && Boolean.FALSE.equals(serviceType.getDeletedByCascade())) {
                                             serviceType.setDeletedByCascade(true);
+                                            serviceType.setDeletedAt(now);
                                             serviceTypeRepository.save(serviceType);
                                         }
                                     }
                                     service.setDeletedByCascade(true);
+                                    service.setDeletedAt(now);
                                     serviceRepository.save(service);
                                 }
                             }
                             vehicle.setDeletedByCascade(true);
+                            vehicle.setDeletedAt(now);
                             vehicleRepository.save(vehicle);
                         }
                     }
 
+                    customer.setDeletedAt(now);
                     entityManager.flush();
                     return customer;
                 })
@@ -281,20 +287,27 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setPhoneNumber(customerUpdateDto.getPhoneNumber());
         customer.setDeleted(customerUpdateDto.getDeleted());
 
+        if (!customerUpdateDto.getDeleted()) {
+            customer.setDeletedAt(null);
+        }
+
         for (Vehicle vehicle : customer.getVehicles()) {
             if (Boolean.TRUE.equals(vehicle.getDeletedByCascade()) && Boolean.TRUE.equals(vehicle.getDeleted())) {
                 vehicle.setDeleted(false);
                 vehicle.setDeletedByCascade(false);
+                vehicle.setDeletedAt(null);
 
                 for (com.mss.model.Service service : vehicle.getServices()) {
                     if (Boolean.TRUE.equals(service.getDeletedByCascade()) && Boolean.TRUE.equals(service.getDeleted())) {
                         service.setDeleted(false);
                         service.setDeletedByCascade(false);
+                        service.setDeletedAt(null);
 
                         for (ServiceType serviceType : service.getServiceTypes()) {
                             if (Boolean.TRUE.equals(serviceType.getDeletedByCascade()) && Boolean.TRUE.equals(serviceType.getDeleted())) {
                                 serviceType.setDeleted(false);
                                 serviceType.setDeletedByCascade(false);
+                                serviceType.setDeletedAt(null);
                                 serviceTypeRepository.save(serviceType);
                             }
                         }
@@ -304,6 +317,7 @@ public class CustomerServiceImpl implements CustomerService {
                 vehicleRepository.save(vehicle);
             }
         }
+
         customerRepository.save(customer);
         entityManager.flush();
 
