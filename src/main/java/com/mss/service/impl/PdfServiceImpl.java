@@ -1,8 +1,11 @@
 package com.mss.service.impl;
 
+import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.io.image.ImageData;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.DeviceGray;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
 import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -23,10 +26,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+
 
 /**
  * Service implementation for generating PDF invoices.
@@ -53,6 +60,8 @@ public class PdfServiceImpl implements PdfService {
      * @param serviceId the ID of the service to create an invoice for.
      * @return a byte array containing the generated PDF.
      */
+    private PdfFont unicodeFont;
+
     @Override
     public byte[] createInvoicePdf(Long serviceId) {
         ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
@@ -76,15 +85,18 @@ public class PdfServiceImpl implements PdfService {
             pdfDoc.setDefaultPageSize(PageSize.A4);
             Document document = new Document(pdfDoc);
 
+            // Load Unicode font
+            this.unicodeFont = loadUnicodeFont();
+
             addHeader(document, totalPrice, service);
             addBillingInformation(document, customer);
             dividerWholeWidth(document);
-            document.add(new Paragraph("Services").setBold());
+            document.add(new Paragraph("Storitve").setFont(unicodeFont).setBold());
             addServiceTable(document, serviceTypes);
             dividerHalfWidth(document);
             addTotalPrice(document, totalPrice);
             dividerWholeWidth(document);
-            document.add(new Paragraph("\n \n \n "));
+            document.add(new Paragraph("\n \n \n ").setFont(unicodeFont));
             grayLine(document);
             addFooter(document);
 
@@ -93,6 +105,19 @@ public class PdfServiceImpl implements PdfService {
             e.printStackTrace();
         }
         return dataStream.toByteArray();
+    }
+
+    private PdfFont loadUnicodeFont() throws IOException {
+        try (InputStream fontStream = getClass().getResourceAsStream("/fonts/arial.ttf")) {
+            if (fontStream == null) {
+                throw new IOException("Font file not found in resources");
+            }
+            return PdfFontFactory.createFont(
+                    fontStream.readAllBytes(),
+                    PdfEncodings.IDENTITY_H,
+                    PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED
+            );
+        }
     }
 
     /**
@@ -117,7 +142,8 @@ public class PdfServiceImpl implements PdfService {
      * @return the formatted date string.
      */
     private String formatLocalDate(LocalDate date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
+                .withLocale(Locale.forLanguageTag("sl-SI"));
         return date.format(formatter);
     }
 
@@ -130,10 +156,7 @@ public class PdfServiceImpl implements PdfService {
     private double calculateTotalPrice(List<ServiceType> serviceTypes) {
         double total = 0;
         for (ServiceType serviceType : serviceTypes) {
-            int multiplier = serviceType.getQuantity();
-            double price =  serviceType.getPrice();
-            double amountToAdd = price * multiplier;
-            total += amountToAdd;
+            total += serviceType.getPrice() * serviceType.getQuantity();
         }
         return total;
     }
@@ -147,10 +170,11 @@ public class PdfServiceImpl implements PdfService {
      */
     private void addHeader(Document document, double totalPrice, Service service) {
         float[] columnWidths = {190F, 190F, 190F};
-
         Table table = new Table(columnWidths);
+
         Cell titleCell = new Cell()
                 .add(new Paragraph("RAČUN")
+                        .setFont(unicodeFont)
                         .setFontSize(20))
                 .setBold()
                 .setTextAlignment(TextAlignment.LEFT)
@@ -158,10 +182,10 @@ public class PdfServiceImpl implements PdfService {
                 .setPaddingTop(20);
 
         Paragraph invoiceDetails = new Paragraph()
-                .add(new Paragraph("Št. računa:").setFontSize(14).setBold())
-                .add(service.getInvoiceCode() + "\n").setFontSize(14)
-                .add(new Paragraph("Datum: ").setFontSize(14).setBold())
-                .add(new Paragraph(formatLocalDate(LocalDate.now())).setFontSize(14))
+                .add(new Paragraph("Št. računa:").setFont(unicodeFont).setFontSize(14).setBold())
+                .add(new Paragraph(service.getInvoiceCode()).setFont(unicodeFont).setFontSize(14))
+                .add(new Paragraph("Datum: ").setFont(unicodeFont).setFontSize(14).setBold())
+                .add(new Paragraph(formatLocalDate(LocalDate.now())).setFont(unicodeFont).setFontSize(14))
                 .setTextAlignment(TextAlignment.RIGHT);
 
         table.addCell(titleCell);
@@ -180,20 +204,14 @@ public class PdfServiceImpl implements PdfService {
         try {
             ImageData imageData = ImageDataFactory.create(getClass().getResource("/images/mssLogo.png"));
             Image logo = new Image(imageData);
-
             logo.setWidth(85);
             logo.setHorizontalAlignment(HorizontalAlignment.LEFT);
             logo.setMarginLeft(30);
-
-            return new Cell()
-                    .add(logo)
-                    .setTextAlignment(TextAlignment.CENTER)
-                    .setBorder(Border.NO_BORDER);
-
+            return new Cell().add(logo).setTextAlignment(TextAlignment.CENTER).setBorder(Border.NO_BORDER);
         } catch (Exception e) {
             e.printStackTrace();
+            return new Cell().add(new Paragraph("Logo Error").setFont(unicodeFont));
         }
-        return null;
     }
 
     /**
@@ -202,7 +220,8 @@ public class PdfServiceImpl implements PdfService {
      * @param document the PDF document.
      */
     private void grayLine(Document document) {
-        document.add(new Table(new float[]{190f * 3}).setBorder(new SolidBorder(new DeviceGray(0.5f), 2)));
+        document.add(new Table(new float[]{190f * 3})
+                .setBorder(new SolidBorder(new DeviceGray(0.5f), 2)));
     }
 
     /**
@@ -226,54 +245,25 @@ public class PdfServiceImpl implements PdfService {
      * @param customer the customer object containing billing information.
      */
     private void addBillingInformation(Document document, Customer customer) {
-        document.add(new Paragraph("\nPodatki o zaračunavanju").setBold());
+        document.add(new Paragraph("\nPodatki o zaračunavanju")
+                .setFont(unicodeFont)
+                .setBold());
 
         float[] columnWidths = {280f, 280f};
         Table table = new Table(columnWidths);
 
-        table.addCell(new Cell()
-                .add(new Paragraph("Ime:").setBold())
-                .setBorder(Border.NO_BORDER));
-        table.addCell(new Cell()
-                .add(new Paragraph("Ime podjetja:").setBold().setTextAlignment(TextAlignment.RIGHT))
-                .setBorder(Border.NO_BORDER));
-
-        table.addCell(new Cell()
-                .add(new Paragraph(customer.getFirstname() + " " + customer.getLastname()))
-                .setBorder(Border.NO_BORDER));
-        table.addCell(new Cell()
-                .add(new Paragraph("MSS Company")
-                        .setTextAlignment(TextAlignment.RIGHT))
-                .setBorder(Border.NO_BORDER));
-        table.addCell(new Cell()
-                .add(new Paragraph(("Naslov:")).setBold())
-                .setBorder(Border.NO_BORDER));
-        table.addCell(new Cell()
-                .add(new Paragraph("Naslov podjetja:")
-                        .setBold())
-                .setBorder(Border.NO_BORDER)
-                .setTextAlignment(TextAlignment.RIGHT));
-        table.addCell(new Cell()
-                .add(new Paragraph(customer.getAddress()))
-                .setBorder(Border.NO_BORDER));
-        table.addCell(new Cell()
-                .add(new Paragraph("Brez naslova"))
-                .setBorder(Border.NO_BORDER)
-                .setTextAlignment(TextAlignment.RIGHT));
-        table.addCell(new Cell()
-                .add(new Paragraph(("Telefon:")).setBold())
-                .setBorder(Border.NO_BORDER));
-        table.addCell(new Cell()
-                .add(new Paragraph(("Telefon podjetja:")).setBold())
-                .setBorder(Border.NO_BORDER)
-                .setTextAlignment(TextAlignment.RIGHT));
-        table.addCell(new Cell()
-                .add(new Paragraph(customer.getPhoneNumber()))
-                .setBorder(Border.NO_BORDER));
-        table.addCell(new Cell()
-                .add(new Paragraph("1-267-436-5109"))
-                .setBorder(Border.NO_BORDER)
-                .setTextAlignment(TextAlignment.RIGHT));
+        table.addCell(new Cell().add(new Paragraph("Ime:").setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph("Ime podjetja:").setFont(unicodeFont).setBold().setTextAlignment(TextAlignment.RIGHT)).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph(customer.getFirstname() + " " + customer.getLastname()).setFont(unicodeFont)).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph("Hugo").setFont(unicodeFont).setTextAlignment(TextAlignment.RIGHT)).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph(("Naslov:")).setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph("Naslov podjetja:").setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
+        table.addCell(new Cell().add(new Paragraph(customer.getAddress()).setFont(unicodeFont)).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph("Brez naslova").setFont(unicodeFont)).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
+        table.addCell(new Cell().add(new Paragraph(("Telefon:")).setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph(("Telefon podjetja:")).setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
+        table.addCell(new Cell().add(new Paragraph(customer.getPhoneNumber()).setFont(unicodeFont)).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph("+386 (0)70 485 930").setFont(unicodeFont)).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
 
         document.add(table);
     }
@@ -287,52 +277,42 @@ public class PdfServiceImpl implements PdfService {
     private void addServiceTable(Document document, List<ServiceType> serviceTypes) {
         float[] columnWidths = {142.5F, 142.5F, 142.5F, 142.5F};
         Table serviceTable = new Table(columnWidths);
-        serviceTable.addHeaderCell(new Cell()
-                .add(new Paragraph("Opis")
-                        .setTextAlignment(TextAlignment.CENTER))
-                .setBorder(Border.NO_BORDER)
-                .setBackgroundColor(new DeviceGray(0f), 0.7f)
-                .setFontColor(new DeviceGray(1.0f)));
-        serviceTable.addHeaderCell(new Cell()
-                .add(new Paragraph("Vrsta storitve")
-                        .setTextAlignment(TextAlignment.CENTER))
-                .setBorder(Border.NO_BORDER)
-                .setBackgroundColor(new DeviceGray(0f), 0.7f)
-                .setFontColor(new DeviceGray(1.0f)));
-        serviceTable.addHeaderCell(new Cell()
-                .add(new Paragraph("Količina")
-                        .setTextAlignment(TextAlignment.CENTER))
-                .setBorder(Border.NO_BORDER)
-                .setBackgroundColor(new DeviceGray(0f), 0.7f)
-                .setFontColor(new DeviceGray(1.0f)));
-        serviceTable.addHeaderCell(new Cell()
-                .add(new Paragraph("Cena v €")
-                        .setTextAlignment(TextAlignment.RIGHT))
-                .setBorder(Border.NO_BORDER)
-                .setBackgroundColor(new DeviceGray(0f), 0.7f)
-                .setFontColor(new DeviceGray(1.0f)));
+
+        serviceTable.addHeaderCell(createHeaderCell("Opis"));
+        serviceTable.addHeaderCell(createHeaderCell("Vrsta storitve"));
+        serviceTable.addHeaderCell(createHeaderCell("Količina"));
+        serviceTable.addHeaderCell(createHeaderCell("Cena v €").setTextAlignment(TextAlignment.RIGHT));
 
         for (ServiceType serviceType : serviceTypes) {
-            serviceTable.addCell(new Cell().add(new Paragraph(serviceType.getDescription())).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
-            serviceTable.addCell(new Cell().add(new Paragraph(serviceType.getTypeOfService())).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
-            serviceTable.addCell(new Cell().add(new Paragraph(String.valueOf(serviceType.getQuantity()))).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.CENTER));
-            serviceTable.addCell(new Cell().add(new Paragraph(String.valueOf(serviceType.getPrice()))).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
+            serviceTable.addCell(createDataCell(serviceType.getDescription()));
+            serviceTable.addCell(createDataCell(serviceType.getTypeOfService()));
+            serviceTable.addCell(createDataCell(String.valueOf(serviceType.getQuantity())));
+            serviceTable.addCell(createDataCell(String.valueOf(serviceType.getPrice())).setTextAlignment(TextAlignment.RIGHT));
         }
 
         document.add(serviceTable);
     }
 
-    /**
-     * Adds a width divider to the document.
-     *
-     * @param document the PDF document.
-     */
+    private Cell createHeaderCell(String text) {
+        return new Cell()
+                .add(new Paragraph(text).setFont(unicodeFont))
+                .setBorder(Border.NO_BORDER)
+                .setBackgroundColor(new DeviceGray(0f), 0.7f)
+                .setFontColor(new DeviceGray(1.0f))
+                .setTextAlignment(TextAlignment.CENTER);
+    }
+
+    private Cell createDataCell(String text) {
+        return new Cell()
+                .add(new Paragraph(text).setFont(unicodeFont))
+                .setBorder(Border.NO_BORDER)
+                .setTextAlignment(TextAlignment.CENTER);
+    }
+
     private void dividerWholeWidth(Document document) {
-        float threeCol = 190f;
-        float[] fullWidth = {threeCol * 3};
+        float[] fullWidth = {190f * 3};
         Table divider2 = new Table(fullWidth);
-        Border dashedBorder = new DashedBorder(new DeviceGray(0.5f), 0.5f);
-        divider2.setBorder(dashedBorder);
+        divider2.setBorder(new DashedBorder(new DeviceGray(0.5f), 0.5f));
         document.add(divider2);
     }
 
@@ -344,13 +324,11 @@ public class PdfServiceImpl implements PdfService {
      */
     private void addTotalPrice(Document document, double totalPrice) {
         Paragraph totalPriceParagraph = new Paragraph(String.valueOf(totalPrice))
+                .setFont(unicodeFont)
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setFontSize(14)
                 .setBold();
-
-        totalPriceParagraph.setMarginTop(10);
-        totalPriceParagraph.setMarginBottom(10);
-
+        totalPriceParagraph.setMarginTop(10).setMarginBottom(10);
         document.add(totalPriceParagraph);
     }
 
@@ -360,31 +338,7 @@ public class PdfServiceImpl implements PdfService {
      * @param document the PDF document.
      */
     private void addFooter(Document document) {
-        float availableHeight = document.getPdfDocument().getDefaultPageSize().getHeight()
-                - document.getBottomMargin()
-                - document.getTopMargin()
-                - document.getRenderer().getCurrentArea().getBBox().getY();
-
-        float footerHeight = 720f;
-
-        if (availableHeight < footerHeight) {
-            document.add(new AreaBreak());
-        }
-
-        document.add(new Paragraph("Če imate kakršnakoli vprašanja glede tega računa, prosim kontaktirajte: \n")
-                .setTextAlignment(TextAlignment.LEFT)
-                .setMarginBottom(2));
-
-        document.add(new Paragraph("Ime: Darko")
-                .setTextAlignment(TextAlignment.LEFT)
-                .setMarginBottom(2));
-
-        document.add(new Paragraph("Telefon: 0618367218")
-                .setTextAlignment(TextAlignment.LEFT)
-                .setMarginBottom(2));
-
-        document.add(new Paragraph("E-pošta: darko@gmail.com")
-                .setTextAlignment(TextAlignment.LEFT)
-                .setMarginBottom(2));
+        document.add(new Paragraph("Ime: Darko Vasić").setFont(unicodeFont));
+        document.add(new Paragraph("Telefon: +386 (0)70 485 930").setFont(unicodeFont));
     }
 }
