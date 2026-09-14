@@ -22,6 +22,8 @@ import java.util.List;
 import static com.mss.enumeration.Permission.*;
 import static com.mss.enumeration.Role.ADMIN;
 import static com.mss.enumeration.Role.USER;
+import static com.mss.enumeration.Role.RECEPTIONIST;
+import static com.mss.enumeration.Role.MECHANIC;
 import static org.springframework.http.HttpMethod.*;
 
 /**
@@ -39,6 +41,36 @@ import static org.springframework.http.HttpMethod.*;
 public class SecurityConfiguration {
 
     /**
+     * Endpoint for customer operations.
+     */
+    private static final String CUSTOMERS = "/api/v1/customers";
+
+    /**
+     * Endpoint for service operations.
+     */
+    private static final String SERVICES = "/api/v1/services";
+
+    /**
+     * Endpoint for service type operations.
+     */
+    private static final String SERVICE_TYPES = "/api/v1/service-types";
+
+    /**
+     * Endpoint for vehicle operations.
+     */
+    private static final String VEHICLES = "/api/v1/vehicles";
+
+    /**
+     * Endpoint for vehicle operations.
+     */
+    private static final String REVENUE = "/api/v1/revenue";
+
+    /**
+     * Endpoint for customer report operations.
+     */
+    private static final String CUSTOMER_REPORTS = "/api/v1/customer-reports";
+
+    /**
      * JWT authentication filter used for authentication.
      */
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -54,9 +86,11 @@ public class SecurityConfiguration {
     private final LogoutHandler logoutHandler;
 
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     @Value("${spring.frontend.url}")
     private String frontendUrl;
+
 
     /**
      * Configures the security filter chain for the application.
@@ -75,43 +109,34 @@ public class SecurityConfiguration {
                                 "/api/v1/auth/**",
                                 "/api/v1/ping",
                                 "/error",
-                                "/v2/api-docs",
-                                "/v3/api-docs",
-                                "/v3/api-docs/**",
-                                "/swagger-resources",
-                                "/swagger-resources/**",
-                                "/configuration/ui",
-                                "/configuration/security",
-                                "/swagger-ui/**",
-                                "/webjars/**",
-                                "/swagger-ui.html,"
+                                "/oauth2/**"
                         )
                         .permitAll()
 
-                        .requestMatchers("/api/v1/customers").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/customers").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
-                        .requestMatchers(POST, "/api/v1/customers").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
-                        .requestMatchers(DELETE, "/api/v1/customers").hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
+                        .requestMatchers(CUSTOMERS).hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, CUSTOMERS).hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
+                        .requestMatchers(POST, CUSTOMERS).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+                        .requestMatchers(DELETE, CUSTOMERS).hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
 
-                        .requestMatchers("/api/v1/services").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/services").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
-                        .requestMatchers(POST, "/api/v1/services").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
-                        .requestMatchers(DELETE, "/api/v1/services").hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
+                        .requestMatchers(SERVICES).hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, SERVICES).hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
+                        .requestMatchers(POST, SERVICES).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+                        .requestMatchers(DELETE, SERVICES).hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
 
                         .requestMatchers("/api/v1/register").hasAnyRole(ADMIN.name())
                         .requestMatchers(POST,"/api/v1/register").hasAnyAuthority(ADMIN_CREATE.name())
 
-                        .requestMatchers("/api/v1/service-types").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/service-types").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
-                        .requestMatchers(POST, "/api/v1/service-types").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
-                        .requestMatchers(DELETE, "/api/v1/service-types").hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
-                        .requestMatchers(PUT, "/api/v1/service-types").hasAnyAuthority(ADMIN_UPDATE.name(),USER_UPDATE.name())
+                        .requestMatchers(SERVICE_TYPES).hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, SERVICE_TYPES).hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
+                        .requestMatchers(POST, SERVICE_TYPES).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+                        .requestMatchers(DELETE, SERVICE_TYPES).hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
+                        .requestMatchers(PUT, SERVICE_TYPES).hasAnyAuthority(ADMIN_UPDATE.name(),USER_UPDATE.name())
 
-                        .requestMatchers("/api/v1/vehicles").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/vehicles").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
-                        .requestMatchers(POST, "/api/v1/vehicles").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
-                        .requestMatchers(DELETE, "/api/v1/vehicles").hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
-                        .requestMatchers(PUT, "/api/v1/vehicles").hasAnyAuthority(ADMIN_UPDATE.name(),USER_UPDATE.name())
+                        .requestMatchers(VEHICLES).hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(GET, VEHICLES).hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
+                        .requestMatchers(POST, VEHICLES).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+                        .requestMatchers(DELETE, VEHICLES).hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
+                        .requestMatchers(PUT, VEHICLES).hasAnyAuthority(ADMIN_UPDATE.name(),USER_UPDATE.name())
 
                         .requestMatchers(DELETE, "/api/v1/users").hasAnyAuthority(ADMIN_DELETE.name())
                         .requestMatchers(PUT, "/api/v1/users").hasAnyAuthority(ADMIN_UPDATE.name(),USER_UPDATE.name())
@@ -122,14 +147,24 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/dashboard").hasAnyRole(ADMIN.name(), USER.name())
                         .requestMatchers(GET, "/api/v1/dashboard").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
 
-                        .requestMatchers("/api/v1/revenue").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(POST, "/api/v1/revenue").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+                        .requestMatchers(REVENUE).hasAnyRole(ADMIN.name(), USER.name())
+                        .requestMatchers(POST, REVENUE).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
 
                         .requestMatchers("/api/v1/email").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(POST, "/api/v1/revenue").hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+                        .requestMatchers(POST, REVENUE).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+
+                        .requestMatchers(CUSTOMER_REPORTS).hasAnyRole(ADMIN.name(), RECEPTIONIST.name(), USER.name(), MECHANIC.name())
+                        .requestMatchers(GET, CUSTOMER_REPORTS).hasAnyAuthority(CUSTOMER_REPORT_READ.name())
+                        .requestMatchers(POST, CUSTOMER_REPORTS).hasAnyAuthority(CUSTOMER_REPORT_CREATE.name())
+                        .requestMatchers(PUT, CUSTOMER_REPORTS).hasAnyRole(ADMIN.name(), RECEPTIONIST.name())
+                        .requestMatchers(DELETE, CUSTOMER_REPORTS).hasAnyAuthority(CUSTOMER_REPORT_DELETE.name())
 
                         .anyRequest()
                         .authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureUrl("/oauth2/failure")
                 )
                 .sessionManagement(sessionManagement -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -164,7 +199,6 @@ public class SecurityConfiguration {
         configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type","Refresh"));
         configuration.setExposedHeaders(List.of("X-Total-Items", "X-Total-Pages", "X-Current-Page", "Authorization", "Refresh"));
         configuration.setAllowCredentials(true);
-
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

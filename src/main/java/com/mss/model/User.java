@@ -84,6 +84,12 @@ public class User extends BaseEntity<Long> implements UserDetails {
     private String address;
 
     /**
+     * The number of children the user has (for extra vacation days calculation).
+     */
+    @Column
+    private int numberOfChildren;
+
+    /**
      * The user's verification status.
      */
     @Column
@@ -119,6 +125,24 @@ public class User extends BaseEntity<Long> implements UserDetails {
      */
     @Column
     private String imageUrl;
+
+    /**
+     * Google OAuth2 user ID (if user authenticated via Google).
+     */
+    @Column(name = "google_id")
+    private String googleId;
+
+    /**
+     * Authentication provider (LOCAL, GOOGLE, etc.).
+     */
+    @Column(name = "auth_provider")
+    private String authProvider;
+
+    /**
+     * Flag indicating if user has completed first-time setup (password change after Google OAuth).
+     */
+    @Column(name = "first_time_setup_completed")
+    private boolean firstTimeSetupCompleted = false;
 
     /**
      * The role of the user.

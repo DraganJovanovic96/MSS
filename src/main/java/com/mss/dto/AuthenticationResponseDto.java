@@ -1,6 +1,7 @@
 package com.mss.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mss.enumeration.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,4 +30,10 @@ public class AuthenticationResponseDto {
      */
     @JsonProperty("refresh_token")
     private String refreshToken;
+
+    /**
+     * The user's role in the system.
+     */
+    @JsonProperty("role")
+    private Role role;
 }

@@ -1,5 +1,6 @@
 package com.mss.dto;
 
+import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -49,4 +50,9 @@ public class UserUpdateDto extends BaseEntityDto {
      * The URL can be used to retrieve the image and display it in an application or on webpage.
      */
     private String imageUrl;
+
+    /**
+     * The number of children the user has (for extra vacation days calculation).
+     */
+    private Integer numberOfChildren;
 }

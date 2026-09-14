@@ -29,7 +29,17 @@ public class LocalStorageUserDto {
     private String imageUrl;
 
     /**
+     * Flag indicating if user has completed first-time setup (password change after Google OAuth).
+     */
+    private boolean firstTimeSetupCompleted;
+
+    /**
      * The user's role.
      */
     private String role;
+
+    /**
+     * The number of children the user has (for extra vacation days calculation).
+     */
+    private int numberOfChildren;
 }

@@ -169,7 +169,7 @@ public class ServiceController {
     }
 
     /**
-     * Updates the customer with the information provided in the ServiceUpdateDto.
+     * Updates the service with the information provided in the ServiceUpdateDto.
      *
      * @param serviceUpdateDto The ServiceUpdateDto containing the service information
      * @return The ResponseEntity containing the updated ServiceDto

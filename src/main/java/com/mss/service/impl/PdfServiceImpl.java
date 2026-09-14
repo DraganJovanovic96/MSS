@@ -85,13 +85,12 @@ public class PdfServiceImpl implements PdfService {
             pdfDoc.setDefaultPageSize(PageSize.A4);
             Document document = new Document(pdfDoc);
 
-            // Load Unicode font
             this.unicodeFont = loadUnicodeFont();
 
             addHeader(document, totalPrice, service);
             addBillingInformation(document, customer);
             dividerWholeWidth(document);
-            document.add(new Paragraph("Storitve").setFont(unicodeFont).setBold());
+            document.add(new Paragraph("Usluge").setFont(unicodeFont).setBold());
             addServiceTable(document, serviceTypes);
             dividerHalfWidth(document);
             addTotalPrice(document, totalPrice);
@@ -143,7 +142,7 @@ public class PdfServiceImpl implements PdfService {
      */
     private String formatLocalDate(LocalDate date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd. MMMM yyyy")
-                .withLocale(Locale.forLanguageTag("sl-SI"));
+                .withLocale(Locale.forLanguageTag("sr-Latn-RS"));
         return date.format(formatter);
     }
 
@@ -182,7 +181,7 @@ public class PdfServiceImpl implements PdfService {
                 .setPaddingTop(20);
 
         Paragraph invoiceDetails = new Paragraph()
-                .add(new Paragraph("Št. računa:").setFont(unicodeFont).setFontSize(14).setBold())
+                .add(new Paragraph("Broj računa:").setFont(unicodeFont).setFontSize(14).setBold())
                 .add(new Paragraph(service.getInvoiceCode()).setFont(unicodeFont).setFontSize(14))
                 .add(new Paragraph("Datum: ").setFont(unicodeFont).setFontSize(14).setBold())
                 .add(new Paragraph(formatLocalDate(LocalDate.now())).setFont(unicodeFont).setFontSize(14))
@@ -245,7 +244,7 @@ public class PdfServiceImpl implements PdfService {
      * @param customer the customer object containing billing information.
      */
     private void addBillingInformation(Document document, Customer customer) {
-        document.add(new Paragraph("\nPodatki o zaračunavanju")
+        document.add(new Paragraph("\nPodaci o naplati")
                 .setFont(unicodeFont)
                 .setBold());
 
@@ -253,17 +252,17 @@ public class PdfServiceImpl implements PdfService {
         Table table = new Table(columnWidths);
 
         table.addCell(new Cell().add(new Paragraph("Ime:").setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER));
-        table.addCell(new Cell().add(new Paragraph("Ime podjetja:").setFont(unicodeFont).setBold().setTextAlignment(TextAlignment.RIGHT)).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph("Ime kompanije:").setFont(unicodeFont).setBold().setTextAlignment(TextAlignment.RIGHT)).setBorder(Border.NO_BORDER));
         table.addCell(new Cell().add(new Paragraph(customer.getFirstname() + " " + customer.getLastname()).setFont(unicodeFont)).setBorder(Border.NO_BORDER));
         table.addCell(new Cell().add(new Paragraph("Hugo").setFont(unicodeFont).setTextAlignment(TextAlignment.RIGHT)).setBorder(Border.NO_BORDER));
-        table.addCell(new Cell().add(new Paragraph(("Naslov:")).setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER));
-        table.addCell(new Cell().add(new Paragraph("Naslov podjetja:").setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
+        table.addCell(new Cell().add(new Paragraph(("Adresa:")).setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER));
+        table.addCell(new Cell().add(new Paragraph("Adresa kompanije:").setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
         table.addCell(new Cell().add(new Paragraph(customer.getAddress()).setFont(unicodeFont)).setBorder(Border.NO_BORDER));
-        table.addCell(new Cell().add(new Paragraph("Brez naslova").setFont(unicodeFont)).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
+        table.addCell(new Cell().add(new Paragraph("Bez adrese").setFont(unicodeFont)).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
         table.addCell(new Cell().add(new Paragraph(("Telefon:")).setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER));
-        table.addCell(new Cell().add(new Paragraph(("Telefon podjetja:")).setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
+        table.addCell(new Cell().add(new Paragraph(("Telefon kompanije:")).setFont(unicodeFont).setBold()).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
         table.addCell(new Cell().add(new Paragraph(customer.getPhoneNumber()).setFont(unicodeFont)).setBorder(Border.NO_BORDER));
-        table.addCell(new Cell().add(new Paragraph("+386 (0)70 485 930").setFont(unicodeFont)).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
+        table.addCell(new Cell().add(new Paragraph("+381 (0)62 125 840").setFont(unicodeFont)).setBorder(Border.NO_BORDER).setTextAlignment(TextAlignment.RIGHT));
 
         document.add(table);
     }
@@ -279,9 +278,9 @@ public class PdfServiceImpl implements PdfService {
         Table serviceTable = new Table(columnWidths);
 
         serviceTable.addHeaderCell(createHeaderCell("Opis"));
-        serviceTable.addHeaderCell(createHeaderCell("Vrsta storitve"));
+        serviceTable.addHeaderCell(createHeaderCell("Vrsta usluge"));
         serviceTable.addHeaderCell(createHeaderCell("Količina"));
-        serviceTable.addHeaderCell(createHeaderCell("Cena v €").setTextAlignment(TextAlignment.RIGHT));
+        serviceTable.addHeaderCell(createHeaderCell("Cena u €").setTextAlignment(TextAlignment.RIGHT));
 
         for (ServiceType serviceType : serviceTypes) {
             serviceTable.addCell(createDataCell(serviceType.getDescription()));
@@ -338,7 +337,7 @@ public class PdfServiceImpl implements PdfService {
      * @param document the PDF document.
      */
     private void addFooter(Document document) {
-        document.add(new Paragraph("Ime: Darko Vasić").setFont(unicodeFont));
-        document.add(new Paragraph("Telefon: +386 (0)70 485 930").setFont(unicodeFont));
+        document.add(new Paragraph("Ime: Dragan Jovanović").setFont(unicodeFont));
+        document.add(new Paragraph("Telefon: +381 (0)61 192 6217").setFont(unicodeFont));
     }
 }

@@ -28,6 +28,7 @@ public interface ServiceMapper {
     @Mapping(target = "vehicleDto", source = "service.vehicle")
     @Mapping(target = "userDto", source = "service.user")
     @Mapping(target = "serviceTypeDtos", source = "service.serviceTypes")
+    @Mapping(target = "customerReportId", source = "service.customerReport.id")
     ServiceDto serviceToServiceDto(Service service);
 
     /**

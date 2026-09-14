@@ -44,4 +44,16 @@ public class UserFiltersQueryDto {
      */
     @JsonProperty("isDeleted")
     private boolean isDeleted;
+
+    /**
+     * Field to sort by (e.g., "firstname", "lastname", "email", "address").
+     */
+    @JsonProperty("sortBy")
+    private String sortBy;
+
+    /**
+     * Sort direction: "asc" for ascending, "desc" for descending.
+     */
+    @JsonProperty("sortDirection")
+    private String sortDirection;
 }

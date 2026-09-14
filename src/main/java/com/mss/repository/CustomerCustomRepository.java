@@ -67,8 +67,13 @@ public class CustomerCustomRepository {
             predicates.add(customer.get("vehicle").get("id").in(filters.getVehicleIds()));
         }
         cq.where(cb.and(predicates.toArray(new Predicate[0])));
-        cq.orderBy(cb.asc(customer.get("firstname")));
-        cq.select(customer).distinct(true);
+        
+        boolean isNestedFieldSort = applySorting(cb, cq, customer, filters);
+        
+        cq.select(customer);
+        if (!isNestedFieldSort) {
+            cq.distinct(true);
+        }
 
         TypedQuery<Customer> query = entityManager.createQuery(cq);
         int totalRows = query.getResultList().size();
@@ -76,5 +81,45 @@ public class CustomerCustomRepository {
         query.setMaxResults(pageable.getPageSize());
 
         return new PageImpl<>(query.getResultList(), pageable, totalRows);
+    }
+
+    /**
+     * Applies dynamic sorting to the criteria query based on the sortBy and sortDirection parameters
+     * in the filters DTO. If no sorting parameters are provided, applies default sorting.
+     *
+     * @param cb        the CriteriaBuilder
+     * @param cq        the CriteriaQuery
+     * @param customer  the Root<Customer> entity
+     * @param filters   the CustomerFiltersQueryDto containing sorting parameters
+     * @return true if sorting requires distinct to be removed (nested field or case-insensitive), false otherwise
+     */
+    private boolean applySorting(CriteriaBuilder cb, CriteriaQuery cq, Root<Customer> customer, CustomerFiltersQueryDto filters) {
+        if (Objects.nonNull(filters) && Objects.nonNull(filters.getSortBy()) && !filters.getSortBy().isEmpty()) {
+            String sortBy = filters.getSortBy();
+            String sortDirection = Objects.nonNull(filters.getSortDirection()) && filters.getSortDirection().equalsIgnoreCase("desc") ? "desc" : "asc";
+            
+            jakarta.persistence.criteria.Order order;
+            boolean isNestedField = sortBy.contains(".");
+            boolean isCaseInsensitiveField = sortBy.equals("firstname") || sortBy.equals("lastname") || sortBy.equals("email") || sortBy.equals("address") || sortBy.equals("phoneNumber");
+            
+            if (isNestedField) {
+                String[] parts = sortBy.split("\\.");
+                Path<Object> path = customer.get(parts[0]);
+                for (int i = 1; i < parts.length; i++) {
+                    path = path.get(parts[i]);
+                }
+                order = sortDirection.equals("asc") ? cb.asc(path) : cb.desc(path);
+            } else if (isCaseInsensitiveField) {
+                order = sortDirection.equals("asc") ? cb.asc(cb.lower(customer.get(sortBy))) : cb.desc(cb.lower(customer.get(sortBy)));
+            } else {
+                order = sortDirection.equals("asc") ? cb.asc(customer.get(sortBy)) : cb.desc(customer.get(sortBy));
+            }
+            
+            cq.orderBy(order);
+            return isNestedField || isCaseInsensitiveField;
+        } else {
+            cq.orderBy(cb.asc(cb.lower(customer.get("firstname"))));
+            return true;
+        }
     }
 }

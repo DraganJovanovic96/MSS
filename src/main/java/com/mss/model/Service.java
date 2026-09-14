@@ -65,4 +65,11 @@ public class Service extends BaseEntity<Long> {
      */
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL)
     private List<ServiceType> serviceTypes = new ArrayList<>();
+
+    /**
+     * The customer report associated with this service (one-to-one).
+     */
+    @OneToOne
+    @JoinColumn(name = "customer_report_id")
+    private CustomerReport customerReport;
 }
