@@ -18,7 +18,7 @@ import java.util.List;
  * @version 1.0
  * @since 1.0
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface UserMapper {
     /**
      * Maps a User object to a UserDto object.
@@ -67,6 +67,8 @@ public interface UserMapper {
      * @return a LocalStorageUserDto object containing the user's information
      */
     @Mapping(target = "role", expression = "java(user.getRole().name())")
+    @Mapping(target = "firstTimeSetupCompleted", source = "firstTimeSetupCompleted")
+    @Mapping(target = "numberOfChildren", source = "numberOfChildren")
     LocalStorageUserDto userToLocalStorageUserDto(User user);
 
 }

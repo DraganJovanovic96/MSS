@@ -191,6 +191,7 @@ public class UserServiceImpl implements UserService {
             user.setMobileNumber(userUpdateDto.getMobileNumber());
             user.setDateOfBirth(userUpdateDto.getDateOfBirth());
             user.setAddress(userUpdateDto.getAddress());
+            user.setNumberOfChildren(userUpdateDto.getNumberOfChildren());
             userRepository.save(user);
 
             return userMapper.userToUserUpdateDto(user);
@@ -218,6 +219,7 @@ public class UserServiceImpl implements UserService {
         user.setMobileNumber(userUpdateDto.getMobileNumber());
         user.setDateOfBirth(userUpdateDto.getDateOfBirth());
         user.setAddress(userUpdateDto.getAddress());
+        user.setNumberOfChildren(userUpdateDto.getNumberOfChildren());
         user.setDeleted(userUpdateDto.getDeleted());
         userRepository.save(user);
 
@@ -241,10 +243,18 @@ public class UserServiceImpl implements UserService {
             String email = userDetails.getUsername();
             User user = findOneByEmail(email);
 
-            if (!passwordEncoder.matches(passwordChangeDto.getPassword(), user.getPassword())) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect password");
+            if (passwordChangeDto.getPassword() != null && !passwordChangeDto.getPassword().isEmpty()) {
+                if (!passwordEncoder.matches(passwordChangeDto.getPassword(), user.getPassword())) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Incorrect password");
+                }
             }
+
             user.setPassword(passwordEncoder.encode(passwordChangeDto.getNewPassword()));
+
+            if (!user.isFirstTimeSetupCompleted()) {
+                user.setFirstTimeSetupCompleted(true);
+            }
+
             userRepository.save(user);
         } else {
             throw new RuntimeException("Authentication object does not contain user details");

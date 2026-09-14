@@ -39,6 +39,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ServiceServiceImpl implements ServiceService {
     /**
+     * The constant for a string isDeleted.
+     */
+    private static final String IS_DELETED_PARAMETER = "isDeleted";
+
+    /**
      * The repository used to retrieve service data.
      */
     private final ServiceRepository serviceRepository;
@@ -125,7 +130,7 @@ public class ServiceServiceImpl implements ServiceService {
     public Integer getServicesForCount(boolean isDeleted, TwoDateDto twoDateDto) {
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter(SERVICE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
+        filter.setParameter(IS_DELETED_PARAMETER, isDeleted);
         List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
 
         session.disableFilter(SERVICE_FILTER);
@@ -147,7 +152,7 @@ public class ServiceServiceImpl implements ServiceService {
         double revenue = 0;
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter(SERVICE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
+        filter.setParameter(IS_DELETED_PARAMETER, isDeleted);
         List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
 
         for (Service service : services) {
@@ -173,7 +178,7 @@ public class ServiceServiceImpl implements ServiceService {
 
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter(SERVICE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
+        filter.setParameter(IS_DELETED_PARAMETER, isDeleted);
         List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
 
         for (Service service : services) {
@@ -202,7 +207,7 @@ public class ServiceServiceImpl implements ServiceService {
 
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter(SERVICE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
+        filter.setParameter(IS_DELETED_PARAMETER, isDeleted);
         List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
         List<PieChartServiceDto> pieChartServiceDtos;
 
@@ -213,7 +218,7 @@ public class ServiceServiceImpl implements ServiceService {
                     pieChartServiceDto.setRevenue(serviceTypeService.findRevenueForService(isDeleted, service));
                     return pieChartServiceDto;
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         session.disableFilter(SERVICE_FILTER);
 
@@ -238,7 +243,7 @@ public class ServiceServiceImpl implements ServiceService {
 
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter(SERVICE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
+        filter.setParameter(IS_DELETED_PARAMETER, isDeleted);
 
         List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
 
@@ -261,7 +266,7 @@ public class ServiceServiceImpl implements ServiceService {
                     dto.setRevenue(revenue);
                     return dto;
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         session.disableFilter(SERVICE_FILTER);
 
@@ -286,7 +291,7 @@ public class ServiceServiceImpl implements ServiceService {
 
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter(SERVICE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
+        filter.setParameter(IS_DELETED_PARAMETER, isDeleted);
 
         List<Service> services = serviceRepository.findServicesByDateRange(twoDateDto.getStartDate(), twoDateDto.getEndDate());
 
@@ -309,7 +314,7 @@ public class ServiceServiceImpl implements ServiceService {
                     dto.setRevenue(revenue);
                     return dto;
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         session.disableFilter(SERVICE_FILTER);
 
@@ -325,7 +330,7 @@ public class ServiceServiceImpl implements ServiceService {
     public List<ServiceDto> getAllServices(boolean isDeleted) {
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter(SERVICE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
+        filter.setParameter(IS_DELETED_PARAMETER, isDeleted);
         List<Service> services = serviceRepository.findAll();
         session.disableFilter(SERVICE_FILTER);
 
@@ -435,12 +440,12 @@ public class ServiceServiceImpl implements ServiceService {
     public Page<ServiceDto> findFilteredServices(boolean isDeleted, ServiceFiltersQueryDto serviceFiltersQueryDto, Integer page, Integer pageSize) {
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter(SERVICE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
+        filter.setParameter(IS_DELETED_PARAMETER, isDeleted);
 
         Page<Service> resultPage = serviceCustomRepository.findFilteredServices(serviceFiltersQueryDto, PageRequest.of(page, pageSize));
         List<Service> services = resultPage.getContent();
 
-        List<ServiceDto> serviceDtos = new ArrayList<ServiceDto>();
+        List<ServiceDto> serviceDtos = new ArrayList<>();
 
         for (Service service : services) {
             ServiceDto serviceDto = serviceMapper.serviceToServiceDto(service);
@@ -470,12 +475,12 @@ public class ServiceServiceImpl implements ServiceService {
     public Page<ServiceWithUserDto> findFilteredServicesWithCustomers(boolean isDeleted, ServiceFiltersQueryDto serviceFiltersQueryDto, Integer page, Integer pageSize) {
         Session session = entityManager.unwrap(Session.class);
         Filter filter = session.enableFilter(SERVICE_FILTER);
-        filter.setParameter("isDeleted", isDeleted);
+        filter.setParameter(IS_DELETED_PARAMETER, isDeleted);
 
         Page<Service> resultPage = serviceCustomRepository.findFilteredServicesWithCustomer(serviceFiltersQueryDto, PageRequest.of(page, pageSize));
         List<Service> services = resultPage.getContent();
 
-        List<ServiceWithUserDto> serviceWithUserDto = new ArrayList<ServiceWithUserDto>();
+        List<ServiceWithUserDto> serviceWithUserDto = new ArrayList<>();
 
         for (Service service : services) {
             ServiceWithUserDto serviceDto = serviceMapper.serviceToServiceWithUserDto(service);

@@ -40,16 +40,9 @@ public class RegisterRequestDto {
     private String email;
 
     /**
-     * The password of the user.
-     */
-    @Size(min = 6, message = "Password must be at least 6 characters long.")
-    @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).{6,}$", message = "Password must be at least 6 characters long and contain at least one letter and one number.")
-    private String password;
-
-    /**
      * The role of the user.
      */
-    private Role role = Role.USER;
+    private Role role ;
 
     /**
      * The mobile number of the user.
@@ -71,4 +64,9 @@ public class RegisterRequestDto {
      * The URL of the user's profile image.
      */
     private String imageUrl;
+
+    /**
+     * The number of children the user has which increases his personal time off.
+     */
+    private int numberOfChildren;
 }

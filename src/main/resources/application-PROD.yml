@@ -28,7 +28,7 @@ spring:
     enabled: true
     baseline-on-migrate: true
     baseline-version: 0
-    locations: classpath:db/migration
+    locations: classpath:migration
 
   mail:
     host: smtp.gmail.com
@@ -49,3 +49,8 @@ application:
       expiration: 86400000 # a day
       refresh-token:
         expiration: 604800000 # 7 days
+
+supabase:
+  bucket-url: ${SUPA_BUCKET}
+  bucket-name: ${SUPABASE_BUCKET_NAME}
+  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}

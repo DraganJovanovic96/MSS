@@ -56,4 +56,16 @@ public class ServiceTypeFiltersQueryDto {
      */
     @JsonProperty("serviceId")
     private Long serviceId;
+
+    /**
+     * Field to sort by (e.g., "typeOfService", "description", "price", "partCode").
+     */
+    @JsonProperty("sortBy")
+    private String sortBy;
+
+    /**
+     * Sort direction: "asc" for ascending, "desc" for descending.
+     */
+    @JsonProperty("sortDirection")
+    private String sortDirection;
 }

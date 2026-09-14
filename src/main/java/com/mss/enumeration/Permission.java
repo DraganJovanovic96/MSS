@@ -1,12 +1,10 @@
 package com.mss.enumeration;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Enumeration representing permissions in the system.
  */
-@RequiredArgsConstructor
 public enum Permission {
     /**
      * Permission to read.
@@ -46,11 +44,55 @@ public enum Permission {
     /**
      * Permission to delete.
      */
-    USER_DELETE("user:delete");
+    USER_DELETE("user:delete"),
+
+    /**
+     * Permission to read vacation requests.
+     */
+    VACATION_READ("vacation:read"),
+
+    /**
+     * Permission to create vacation requests.
+     */
+    VACATION_CREATE("vacation:create"),
+
+    /**
+     * Permission to update vacation requests.
+     */
+    VACATION_UPDATE("vacation:update"),
+
+    /**
+     * Permission to delete vacation requests.
+     */
+    VACATION_DELETE("vacation:delete"),
+
+    /**
+     * Permission to read customer reports.
+     */
+    CUSTOMER_REPORT_READ("customer_report:read"),
+
+    /**
+     * Permission to create customer reports.
+     */
+    CUSTOMER_REPORT_CREATE("customer_report:create"),
+
+    /**
+     * Permission to update customer reports.
+     */
+    CUSTOMER_REPORT_UPDATE("customer_report:update"),
+
+    /**
+     * Permission to delete customer reports.
+     */
+    CUSTOMER_REPORT_DELETE("customer_report:delete");
 
     /**
      * The string representation of the permission.
      */
     @Getter
     private final String permission;
+
+    Permission(String permission) {
+        this.permission = permission;
+    }
 }

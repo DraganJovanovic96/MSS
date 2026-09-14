@@ -93,6 +93,25 @@ public class VehicleControllers {
     }
 
     /**
+     * The endpoint accepts a GET request.
+     * Retrieves all vehicles belonging to a specific customer.
+     *
+     * @param customerId the id of the customer
+     * @return ResponseEntity<List<VehicleDto>> containing the customer's vehicles
+     */
+    @GetMapping(value = "/customer/{customerId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('admin:read', 'user:read')")
+    @ApiOperation(value = "Get vehicles by customer")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Customer's vehicles successfully fetched.", response = VehicleDto.class),
+            @ApiResponse(code = 404, message = "Customer doesn't exist.")
+    })
+    public ResponseEntity<List<VehicleDto>> getVehiclesByCustomer(@Valid @PathVariable Long customerId) {
+        List<VehicleDto> vehicles = vehicleService.findVehiclesByCustomerId(customerId);
+        return ResponseEntity.ok(vehicles);
+    }
+
+    /**
      * The endpoint accepts a DELETE request.
      *
      * @param vehicleId the id of the Vehicle to delete

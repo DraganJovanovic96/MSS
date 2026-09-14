@@ -1,6 +1,7 @@
 package com.mss.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.mss.enumeration.Role;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -57,4 +58,14 @@ public class UserDto extends BaseEntityDto {
      */
     @JsonIgnoreProperties("userDto")
     private List<ServiceDto> serviceDtos;
+
+    /**
+     * The number of children the user has (for extra vacation days calculation).
+     */
+    private Integer numberOfChildren;
+
+    /**
+     * The user's role in the system.
+     */
+    private Role role;
 }

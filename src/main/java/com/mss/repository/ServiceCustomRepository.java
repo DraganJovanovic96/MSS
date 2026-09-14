@@ -8,6 +8,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Path;
 import lombok.Data;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -71,8 +72,13 @@ public class ServiceCustomRepository {
         }
 
         cq.where(cb.and(predicates.toArray(new Predicate[0])));
-        cq.orderBy(cb.asc(service.get("endDate")), cb.desc(service.get("endDate")));
-        cq.select(service).distinct(true);
+        
+        boolean isNestedFieldSort = applySorting(cb, cq, service, filters);
+        
+        cq.select(service);
+        if (!isNestedFieldSort) {
+            cq.distinct(true);
+        }
 
         TypedQuery<Service> query = entityManager.createQuery(cq);
         int totalRows = query.getResultList().size();
@@ -123,8 +129,13 @@ public class ServiceCustomRepository {
         predicates.add(cb.isNull(service.get("endDate")));
 
         cq.where(cb.and(predicates.toArray(new Predicate[0])));
-        cq.orderBy(cb.asc(service.get("startDate")), cb.desc(service.get("startDate")));
-        cq.select(service).distinct(true);
+        
+        boolean isNestedFieldSort = applySorting(cb, cq, service, filters);
+        
+        cq.select(service);
+        if (!isNestedFieldSort) {
+            cq.distinct(true);
+        }
 
         TypedQuery<Service> query = entityManager.createQuery(cq);
         int totalRows = query.getResultList().size();
@@ -132,5 +143,45 @@ public class ServiceCustomRepository {
         query.setMaxResults(pageable.getPageSize());
 
         return new PageImpl<>(query.getResultList(), pageable, totalRows);
+    }
+
+    /**
+     * Applies dynamic sorting to the criteria query based on the sortBy and sortDirection parameters
+     * in the filters DTO. If no sorting parameters are provided, applies default sorting.
+     *
+     * @param cb      the CriteriaBuilder
+     * @param cq      the CriteriaQuery
+     * @param service the Root<Service> entity
+     * @param filters the ServiceFiltersQueryDto containing sorting parameters
+     * @return true if sorting requires distinct to be removed (nested field or case-insensitive), false otherwise
+     */
+    private boolean applySorting(CriteriaBuilder cb, CriteriaQuery cq, Root<Service> service, ServiceFiltersQueryDto filters) {
+        if (Objects.nonNull(filters) && Objects.nonNull(filters.getSortBy()) && !filters.getSortBy().isEmpty()) {
+            String sortBy = filters.getSortBy();
+            String sortDirection = Objects.nonNull(filters.getSortDirection()) && filters.getSortDirection().equalsIgnoreCase("desc") ? "desc" : "asc";
+            
+            jakarta.persistence.criteria.Order order;
+            boolean isNestedField = sortBy.contains(".");
+            boolean isCaseInsensitiveField = sortBy.equals("invoiceCode");
+            
+            if (isNestedField) {
+                String[] parts = sortBy.split("\\.");
+                Path<Object> path = service.get(parts[0]);
+                for (int i = 1; i < parts.length; i++) {
+                    path = path.get(parts[i]);
+                }
+                order = sortDirection.equals("asc") ? cb.asc(path) : cb.desc(path);
+            } else if (isCaseInsensitiveField) {
+                order = sortDirection.equals("asc") ? cb.asc(cb.lower(service.get(sortBy))) : cb.desc(cb.lower(service.get(sortBy)));
+            } else {
+                order = sortDirection.equals("asc") ? cb.asc(service.get(sortBy)) : cb.desc(service.get(sortBy));
+            }
+            
+            cq.orderBy(order);
+            return isNestedField || isCaseInsensitiveField;
+        } else {
+            cq.orderBy(cb.asc(service.get("startDate")), cb.desc(service.get("startDate")));
+            return false;
+        }
     }
 }

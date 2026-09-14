@@ -57,4 +57,16 @@ public class VehicleFiltersQueryDto {
      */
     @JsonProperty("customerId")
     private Long customerId;
+
+    /**
+     * Field to sort by (e.g., "manufacturer", "model", "vehiclePlate", "vin", "yearOfManufacture").
+     */
+    @JsonProperty("sortBy")
+    private String sortBy;
+
+    /**
+     * Sort direction: "asc" for ascending, "desc" for descending.
+     */
+    @JsonProperty("sortDirection")
+    private String sortDirection;
 }
