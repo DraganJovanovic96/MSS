@@ -25,6 +25,11 @@ public class NotificationServiceImpl implements NotificationService {
     private final EmailServiceImpl emailService;
 
     /**
+     * Supabase configuration properties.
+     */
+    private final com.mss.config.SupabaseProperties supabaseProperties;
+
+    /**
      * Sends an email to the customer notifying them that their service is complete and their vehicle is ready for pick-up.
      * <p>
      * This method formats an email message with the customer's information and the details of the completed service,
@@ -38,6 +43,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void sendServiceOverEmail(EmailCustomerDto emailCustomerDto) {
         String subject = "Your Vehicle Service is Complete - Pick Up Ready";
+        String logoUrl = getLogoUrl();
 
         String htmlMessage = """
                 <!DOCTYPE html>
@@ -99,7 +105,7 @@ public class NotificationServiceImpl implements NotificationService {
                                 font-weight: bold;
                                 color: #4e5d6d;
                               }
-                
+
                     .vehicle-info {
                       display: flex;
                       flex-direction: column;
@@ -130,18 +136,18 @@ public class NotificationServiceImpl implements NotificationService {
                 <body>
                   <div class="email-container">
                     <div class="email-header">
-                      <img src="https://i.imghippo.com/files/pQi9349bTk.png" alt="Logo">
+                      <img src="%s" alt="Logo">
                     </div>
                     <div class="email-body">
                       <h1>Your Vehicle Service is Complete!</h1>
                       <p>We are happy to inform you that your vehicle service has been completed successfully. You can now pick up your vehicle.</p>
-                
+
                     <div class="info-section">
                                 <p><span class="info-title">Customer Name:</span> %s</p>
                                 <p><span class="info-title">Vehicle:</span> %s</p>
                                 <p><span class="info-title">Invoice Code:</span> %s</p>
                     </div>
-                
+
                       <p>If you have any questions or need further assistance, feel free to contact us. Otherwise, feel free to visit us and pick up your car at your convenience.</p>
                     </div>
                     <div class="email-footer">
@@ -151,12 +157,21 @@ public class NotificationServiceImpl implements NotificationService {
                   </div>
                 </body>
                 </html>
-                """.formatted(emailCustomerDto.getCustomerName(), emailCustomerDto.getVehicleManufacturerAndModel(), emailCustomerDto.getInvoiceCode());
+                """.formatted(logoUrl, emailCustomerDto.getCustomerName(), emailCustomerDto.getVehicleManufacturerAndModel(), emailCustomerDto.getInvoiceCode());
 
         try {
             emailService.sendVerificationEmail(emailCustomerDto.getCustomerEmail(), subject, htmlMessage);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Gets the logo URL from Supabase Storage.
+     *
+     * @return the logo URL
+     */
+    private String getLogoUrl() {
+        return supabaseProperties.getBucketUrl() + "/" + supabaseProperties.getBucketName() + "/logo/logo.png";
     }
 }

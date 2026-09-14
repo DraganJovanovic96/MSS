@@ -29,7 +29,11 @@ public enum Role {
                     USER_READ,
                     USER_UPDATE,
                     USER_DELETE,
-                    USER_CREATE
+                    USER_CREATE,
+                    VACATION_READ,
+                    VACATION_CREATE,
+                    VACATION_UPDATE,
+                    VACATION_DELETE
             )
     ),
 
@@ -41,7 +45,40 @@ public enum Role {
                     USER_READ,
                     USER_UPDATE,
                     USER_DELETE,
-                    USER_CREATE
+                    USER_CREATE,
+                    VACATION_READ,
+                    VACATION_CREATE,
+                    VACATION_DELETE,
+                    CUSTOMER_REPORT_READ,
+                    CUSTOMER_REPORT_UPDATE
+            )
+    ),
+
+    /**
+     * Receptionist role for creating customer reports.
+     */
+    RECEPTIONIST(
+            Set.of(
+                    CUSTOMER_REPORT_READ,
+                    CUSTOMER_REPORT_CREATE,
+                    CUSTOMER_REPORT_UPDATE,
+                    CUSTOMER_REPORT_DELETE
+            )
+    ),
+
+    /**
+     * Mechanic role for viewing customer reports.
+     */
+    MECHANIC(
+            Set.of(
+                    USER_READ,
+                    USER_UPDATE,
+                    USER_DELETE,
+                    USER_CREATE,
+                    VACATION_READ,
+                    VACATION_CREATE,
+                    VACATION_DELETE,
+                    CUSTOMER_REPORT_READ
             )
     );
 

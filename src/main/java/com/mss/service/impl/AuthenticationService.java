@@ -8,7 +8,9 @@ import com.mss.model.Token;
 import com.mss.model.User;
 import com.mss.repository.TokenRepository;
 import com.mss.repository.UserRepository;
+import com.mss.util.CookieUtil;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -68,6 +70,11 @@ public class AuthenticationService {
     private final EmailServiceImpl emailService;
 
     /**
+     * Supabase configuration properties.
+     */
+    private final com.mss.config.SupabaseProperties supabaseProperties;
+
+    /**
      * The characters used to create password code.
      */
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -82,12 +89,16 @@ public class AuthenticationService {
 
 
     /**
-     * Registers a new user.
+     * Registers a new user (admin-created).
+     * Generates random password and requires first-time setup via Google OAuth.
+     * No email verification needed - Google OAuth serves as verification.
      *
      * @param request the registration request data
      * @return the authentication response containing the access token and refresh token
      */
     public AuthenticationResponseDto register(@Valid RegisterRequestDto request) throws UnsupportedEncodingException {
+        String password = generateRandomPassword();
+        
         var user = User.builder()
                 .firstname(request.getFirstname())
                 .lastname(request.getLastname())
@@ -96,14 +107,12 @@ public class AuthenticationService {
                 .mobileNumber(request.getMobileNumber())
                 .address(request.getAddress())
                 .dateOfBirth(request.getDateOfBirth())
-                .password(passwordEncoder.encode(request.getPassword()))
+                .password(passwordEncoder.encode(password))
                 .role(request.getRole())
+                .numberOfChildren(request.getNumberOfChildren())
+                .firstTimeSetupCompleted(false)
+                .enabled(true)
                 .build();
-        String token = generateVerificationCode();
-        user.setVerificationCode(passwordEncoder.encode(token));
-        user.setVerificationExpiration(LocalDateTime.now().plusHours(3));
-        user.setEnabled(false);
-        sendVerificationEmail(token, user.getEmail());
         var savedUser = repository.save(user);
         var jwtToken = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(user);
@@ -201,7 +210,7 @@ public class AuthenticationService {
      * @param user     the user associated with the token
      * @param jwtToken the JWT token to be saved
      */
-    private void saveUserToken(User user, String jwtToken) {
+    public void saveUserToken(User user, String jwtToken) {
         var token = Token.builder()
                 .user(user)
                 .token(jwtToken)
@@ -236,13 +245,13 @@ public class AuthenticationService {
      * @throws IOException if an I/O error occurs
      */
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final String refreshHeader = request.getHeader("Refresh");
-        final String refreshToken;
+        final String refreshToken = CookieUtil.getRefreshTokenFromCookies(request.getCookies());
         final String userEmail;
-        if (refreshHeader == null || !refreshHeader.startsWith("Bearer ")) {
+
+        if (refreshToken == null || refreshToken.isEmpty()) {
             return;
         }
-        refreshToken = refreshHeader.substring(7);
+
         userEmail = jwtService.extractUsername(refreshToken);
 
         if (userEmail != null) {
@@ -251,6 +260,9 @@ public class AuthenticationService {
                 var accessToken = jwtService.generateToken(user);
                 revokeAllUserTokens(user);
                 saveUserToken(user, accessToken);
+
+                CookieUtil.addAccessTokenCookie(response, accessToken);
+
                 var authResponse = AuthenticationResponseDto.builder()
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
@@ -310,9 +322,11 @@ public class AuthenticationService {
     public void sendVerificationEmail(String token, String email) throws UnsupportedEncodingException {
         String subject = "MSS Account Verification";
 
-        String verificationLink = frontendUrl + "verify?token=" +
+        String verificationLink = frontendUrl + "/verify?token=" +
                 URLEncoder.encode(token, "UTF-8") +
                 "&email=" + URLEncoder.encode(email, "UTF-8");
+
+        String logoUrl = getLogoUrl();
 
         String htmlMessage = """
                 <!DOCTYPE html>
@@ -389,7 +403,7 @@ public class AuthenticationService {
                 <body>
                   <div class="email-container">
                     <div class="email-header">
-                      <img src="https://i.imghippo.com/files/pQi9349bTk.png" alt="Logo">
+                      <img src="%s" alt="Logo">
                     </div>
                     <div class="email-body">
                       <h1>Verify Your Email Address</h1>
@@ -406,7 +420,7 @@ public class AuthenticationService {
                   </div>
                 </body>
                 </html>
-                """.formatted(verificationLink);
+                """.formatted(logoUrl, verificationLink);
 
         try {
             emailService.sendVerificationEmail(email, subject, htmlMessage);
@@ -419,11 +433,12 @@ public class AuthenticationService {
         User user = repository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User doesn't exist"));
 
-        String resetLink = frontendUrl + "reset-password?token=" +
+        String resetLink = frontendUrl + "/reset-password?token=" +
                 URLEncoder.encode(generatedToken, "UTF-8") +
                 "&email=" + URLEncoder.encode(email, "UTF-8");
 
         String subject = "MSS Password Reset";
+        String logoUrl = getLogoUrl();
 
         String htmlMessage = """
                 <!DOCTYPE html>
@@ -436,7 +451,7 @@ public class AuthenticationService {
                 <body style="font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px;">
                   <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 8px; border: 1px solid #dddddd; overflow: hidden;">
                     <div style="background-color: #2c2b29; text-align: center; padding: 20px;">
-                      <img src="https://i.imghippo.com/files/pQi9349bTk.png" alt="Logo" style="max-width: 150px;">
+                      <img src="%s" alt="Logo" style="max-width: 150px;">
                     </div>
                     <div style="padding: 20px;">
                       <h1 style="color: #333333; font-size: 24px;">Password Reset</h1>
@@ -451,7 +466,7 @@ public class AuthenticationService {
                   </div>
                 </body>
                 </html>
-                """.formatted(email, resetLink);
+                """.formatted(logoUrl, email, resetLink);
 
         try {
             emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
@@ -471,5 +486,59 @@ public class AuthenticationService {
         }
 
         return verificationCode.toString();
+    }
+
+    /**
+     * Gets the logo URL from Supabase Storage.
+     *
+     * @return the logo URL
+     */
+    private String getLogoUrl() {
+        return supabaseProperties.getBucketUrl() + "/" + supabaseProperties.getBucketName() + "/logo/logo.png";
+    }
+
+    /**
+     * Generates a random secure password for admin-created users.
+     *
+     * @return a random password with at least 12 characters including letters, numbers, and special characters
+     */
+    private String generateRandomPassword() {
+        SecureRandom secureRandom = new SecureRandom();
+        String upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String lowerCase = "abcdefghijklmnopqrstuvwxyz";
+        String digits = "0123456789";
+        String specialChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+        String allChars = upperCase + lowerCase + digits + specialChars;
+        
+        StringBuilder password = new StringBuilder(16);
+
+        password.append(upperCase.charAt(secureRandom.nextInt(upperCase.length())));
+        password.append(lowerCase.charAt(secureRandom.nextInt(lowerCase.length())));
+        password.append(digits.charAt(secureRandom.nextInt(digits.length())));
+        password.append(specialChars.charAt(secureRandom.nextInt(specialChars.length())));
+
+        for (int i = 4; i < 16; i++) {
+            password.append(allChars.charAt(secureRandom.nextInt(allChars.length())));
+        }
+
+        return shuffleString(password.toString(), secureRandom);
+    }
+
+    /**
+     * Shuffles a string using the provided SecureRandom.
+     *
+     * @param input the string to shuffle
+     * @param secureRandom the random number generator
+     * @return the shuffled string
+     */
+    private String shuffleString(String input, SecureRandom secureRandom) {
+        char[] characters = input.toCharArray();
+        for (int i = characters.length - 1; i > 0; i--) {
+            int j = secureRandom.nextInt(i + 1);
+            char temp = characters[i];
+            characters[i] = characters[j];
+            characters[j] = temp;
+        }
+        return new String(characters);
     }
 }

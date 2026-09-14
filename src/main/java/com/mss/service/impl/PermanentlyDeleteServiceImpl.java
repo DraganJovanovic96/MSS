@@ -59,6 +59,11 @@ public class PermanentlyDeleteServiceImpl implements PermanentDeletionService {
     private final ServiceTypeRepository serviceTypeRepository;
 
     /**
+     * The repository used to retrieve customer report type data.
+     */
+    private final CustomerReportRepository customerReportRepository;
+
+    /**
      * Permanently deletes resources (customers, vehicles, services, service types, and tokens) that have been deleted for
      * longer than one week. This method is scheduled to run periodically to ensure resources are permanently removed after
      * the retention period.
@@ -72,7 +77,7 @@ public class PermanentlyDeleteServiceImpl implements PermanentDeletionService {
      * </ul>
      * </p>
      *
-     * <p>This method is scheduled to run every minute, but can be adjusted for testing purposes. The method utilizes
+     * <p>This method is scheduled to run every hour, but can be adjusted for testing purposes. The method utilizes
      * repository queries that filter entities based on the deletion timestamp.</p>
      *
      * @see CustomerRepository#findCustomersDeletedOlderThanOneWeek(Instant) (LocalDateTime)
@@ -106,6 +111,11 @@ public class PermanentlyDeleteServiceImpl implements PermanentDeletionService {
                 .map(ServiceType::getId)
                 .collect(Collectors.toList());
 
+        List<Long> customerReportIds = customerReportRepository.findCustomerReportsDeletedOlderThanOneWeek(oneWeekAgo)
+                .stream()
+                .map(CustomerReport::getId)
+                .collect(Collectors.toList());
+
         List<Long> deletedTokensByIds = tokenRepository.findTokensOlderThanOneWeek(oneWeekAgo)
                 .stream()
                 .map(Token::getId)
@@ -116,5 +126,6 @@ public class PermanentlyDeleteServiceImpl implements PermanentDeletionService {
         vehicleRepository.permanentlyDeleteAllDeletedVehicles(deletedVehicleIds);
         customerRepository.permanentlyDeleteAllDeletedCustomers(deletedCustomerIds);
         tokenRepository.deleteByIds(deletedTokensByIds);
+        customerReportRepository.permanentlyDeleteAllDeletedCustomerReports(customerReportIds);
     }
 }

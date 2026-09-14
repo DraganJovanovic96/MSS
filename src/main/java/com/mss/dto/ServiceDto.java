@@ -62,4 +62,9 @@ public class ServiceDto extends BaseEntityDto {
      * Service types connected to service.
      */
     private List<ServiceTypeDto> serviceTypeDtos;
+
+    /**
+     * The customer report ID associated with this service.
+     */
+    private Long customerReportId;
 }

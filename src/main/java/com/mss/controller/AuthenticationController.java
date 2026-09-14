@@ -2,11 +2,17 @@ package com.mss.controller;
 
 
 import com.mss.dto.*;
+import com.mss.model.AuthorizationCode;
+import com.mss.model.User;
+import com.mss.repository.UserRepository;
 import com.mss.service.impl.AuthenticationService;
+import com.mss.service.impl.AuthorizationCodeService;
+import com.mss.util.CookieUtil;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 /**
  * Controller class for handling authentication-related API endpoints.
@@ -33,9 +40,20 @@ public class AuthenticationController {
     private final AuthenticationService service;
 
     /**
+     * The service used for OAuth2 authorization code management.
+     */
+    private final AuthorizationCodeService authorizationCodeService;
+
+    /**
+     * Repository for user data access.
+     */
+    private final UserRepository userRepository;
+
+    /**
      * Authenticates a user.
      *
      * @param request the authentication request containing user credentials
+     * @param response the HttpServletResponse for setting cookies
      * @return the ResponseEntity containing the authentication response
      */
     @PostMapping("/authenticate")
@@ -44,16 +62,26 @@ public class AuthenticationController {
             @ApiResponse(code = 403, message = "Account is not verified.")
     })
     public ResponseEntity<AuthenticationResponseDto> authenticate(
-            @RequestBody AuthenticationRequestDto request
+            @RequestBody AuthenticationRequestDto request,
+            HttpServletResponse response
     ) {
-        return ResponseEntity.ok(service.authenticate(request));
+        AuthenticationResponseDto authResponse = service.authenticate(request);
+
+        CookieUtil.addAuthCookies(response, authResponse.getAccessToken(), authResponse.getRefreshToken());
+
+        AuthenticationResponseDto responseWithoutTokens = AuthenticationResponseDto.builder()
+                .accessToken(null)
+                .refreshToken(null)
+                .build();
+        
+        return ResponseEntity.ok(responseWithoutTokens);
     }
 
     /**
      * Refreshes the authentication token.
      *
      * @param request  the HttpServletRequest containing the refresh token
-     * @param response the HttpServletResponse for setting the new token in the response header
+     * @param response the HttpServletResponse for setting the new token in cookies
      * @throws IOException if an I/O error occurs while refreshing the token
      */
     @PostMapping("/refresh-token")
@@ -68,14 +96,25 @@ public class AuthenticationController {
      * Verifies a user's account using a verification code.
      *
      * @param token verification code of the user.
+     * @param response the HttpServletResponse for setting cookies
      * @return a {@link ResponseEntity} containing an {@link AuthenticationResponseDto} with the verification status
      * @throws ResponseStatusException if the verification code is invalid, expired, or if the user is already verified
      */
     @PostMapping("/verification")
     public ResponseEntity<AuthenticationResponseDto> verifyUser(@RequestParam String token,
-                                                                @RequestParam String email) {
+                                                                @RequestParam String email,
+                                                                HttpServletResponse response) {
+        AuthenticationResponseDto authResponse = service.verifyUser(token, email);
+
+        CookieUtil.addAuthCookies(response, authResponse.getAccessToken(), authResponse.getRefreshToken());
+
+        AuthenticationResponseDto responseWithoutTokens = AuthenticationResponseDto.builder()
+                .accessToken(null)
+                .refreshToken(null)
+                .build();
+        
         return ResponseEntity.status(HttpStatus.OK)
-                .body(service.verifyUser(token, email));
+                .body(responseWithoutTokens);
     }
 
     /**
@@ -127,6 +166,7 @@ public class AuthenticationController {
      *
      * @param token            The password reset token sent to the user's email.
      * @param passwordResetDto Data Transfer Object containing the new password and confirmation.
+     * @param response the HttpServletResponse for setting cookies
      * @return A response entity containing the authentication response if the password reset is successful.
      * @throws ResponseStatusException if the token is invalid or the password reset fails.
      */
@@ -134,9 +174,71 @@ public class AuthenticationController {
     public ResponseEntity<AuthenticationResponseDto> resetPassword(
             @RequestParam String token,
             @RequestParam String email,
-            @RequestBody PasswordResetDto passwordResetDto) {
+            @RequestBody PasswordResetDto passwordResetDto,
+            HttpServletResponse response) {
+
+        AuthenticationResponseDto authResponse = service.resetPassword(token, email, passwordResetDto);
+
+        CookieUtil.addAuthCookies(response, authResponse.getAccessToken(), authResponse.getRefreshToken());
+
+        AuthenticationResponseDto responseWithoutTokens = AuthenticationResponseDto.builder()
+                .accessToken(null)
+                .refreshToken(null)
+                .build();
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(service.resetPassword(token, email, passwordResetDto));
+                .body(responseWithoutTokens);
+    }
+
+    /**
+     * Exchanges OAuth2 authorization code for JWT tokens.
+     *
+     * @param codeExchangeDto the authorization code exchange request
+     * @param response the HttpServletResponse for setting cookies
+     * @return the authentication response with success message
+     */
+    @PostMapping("/oauth2/exchange")
+    public ResponseEntity<?> exchangeOAuth2Code(@Valid @RequestBody OAuth2CodeExchangeDto codeExchangeDto,
+                                               HttpServletResponse response) {
+        try {
+            AuthorizationCode authCode = authorizationCodeService.validateAndConsumeCode(codeExchangeDto.getCode());
+
+            if (authCode == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "invalid_code",
+                    "message", "Invalid or expired authorization code. Please try logging in again."
+                ));
+            }
+
+            User user = userRepository.findById(authCode.getUserId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            service.saveUserToken(user, authCode.getAccessToken());
+            service.saveUserToken(user, authCode.getRefreshToken());
+
+            CookieUtil.addAuthCookies(response, authCode.getAccessToken(), authCode.getRefreshToken());
+
+            return ResponseEntity.ok(Map.of(
+                "message", "Successfully authenticated via OAuth2",
+                "firstTimeSetup", false
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "exchange_failed",
+                "message", "OAuth2 code exchange failed: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Logs out the user by clearing authentication cookies.
+     *
+     * @param response the HttpServletResponse for clearing cookies
+     * @return a success message
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        CookieUtil.clearAuthCookies(response);
+        return ResponseEntity.ok(Map.of("message", "Successfully logged out"));
     }
 }

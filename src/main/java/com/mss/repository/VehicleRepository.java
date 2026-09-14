@@ -50,6 +50,14 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     Optional<Vehicle> findOneById(Long vehicleId);
 
     /**
+     * Find all vehicles belonging to a specific customer.
+     *
+     * @param customerId the id of the customer
+     * @return a list of vehicles belonging to the customer
+     */
+    List<Vehicle> findByCustomerId(Long customerId);
+
+    /**
      * Finds all vehicles that are marked as deleted.
      *
      * @return A list of vehicles that are marked as deleted.

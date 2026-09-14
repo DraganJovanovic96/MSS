@@ -124,6 +124,28 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     /**
+     * Finds all vehicles belonging to a specific customer.
+     *
+     * @param customerId the unique identifier of the customer
+     * @return a list of {@link VehicleDto} representing the customer's vehicles
+     */
+    @Override
+    public List<VehicleDto> findVehiclesByCustomerId(Long customerId) {
+        customerRepository.findOneById(customerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Customer not found"));
+
+        Session session = entityManager.unwrap(Session.class);
+        Filter filter = session.enableFilter(VEHICLE_FILTER);
+        filter.setParameter("isDeleted", false);
+
+        List<Vehicle> vehicles = vehicleRepository.findByCustomerId(customerId);
+
+        session.disableFilter(VEHICLE_FILTER);
+
+        return vehicleMapper.vehiclesToVehicleDtos(vehicles);
+    }
+
+    /**
      * Saves a new vehicle based on the provided {@link VehicleCreateDto}.
      * Checks if a vehicle with the same VIN already exists. Throws a conflict
      * exception if it does, and if it's deleted, prompts to check deleted resources.

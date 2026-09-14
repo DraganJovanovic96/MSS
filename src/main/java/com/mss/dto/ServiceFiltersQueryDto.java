@@ -65,4 +65,16 @@ public class ServiceFiltersQueryDto {
      */
     @JsonProperty("customerId")
     private Long customerId;
+
+    /**
+     * Field to sort by (e.g., "invoiceCode", "startDate", "endDate").
+     */
+    @JsonProperty("sortBy")
+    private String sortBy;
+
+    /**
+     * Sort direction: "asc" for ascending, "desc" for descending.
+     */
+    @JsonProperty("sortDirection")
+    private String sortDirection;
 }

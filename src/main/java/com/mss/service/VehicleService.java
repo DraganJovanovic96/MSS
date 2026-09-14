@@ -44,6 +44,14 @@ public interface VehicleService {
     VehicleDto findVehicleById(Long vehicleId);
 
     /**
+     * Finds all vehicles belonging to a specific customer.
+     *
+     * @param customerId the unique identifier of the customer
+     * @return a list of {@link VehicleDto} representing the customer's vehicles
+     */
+    List<VehicleDto> findVehiclesByCustomerId(Long customerId);
+
+    /**
      * A method for saving vehicles. It is implemented in VehicleServiceImpl class.
      *
      * @param vehicleCreateDto the DTO containing the data to create the new vehicle
