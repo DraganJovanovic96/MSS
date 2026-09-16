@@ -16,6 +16,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -48,6 +51,11 @@ public class AuthenticationController {
      * Repository for user data access.
      */
     private final UserRepository userRepository;
+
+    /**
+     * Logout handler for revoking tokens on logout.
+     */
+    private final LogoutHandler logoutHandler;
 
     /**
      * Authenticates a user.
@@ -231,14 +239,16 @@ public class AuthenticationController {
     }
 
     /**
-     * Logs out the user by clearing authentication cookies.
+     * Logs out the user by revoking tokens and clearing authentication cookies.
      *
+     * @param request the HttpServletRequest for accessing cookies
      * @param response the HttpServletResponse for clearing cookies
      * @return a success message
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
-        CookieUtil.clearAuthCookies(response);
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        logoutHandler.logout(request, response, authentication);
         return ResponseEntity.ok(Map.of("message", "Successfully logged out"));
     }
 }

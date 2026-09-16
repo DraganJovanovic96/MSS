@@ -12,7 +12,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -80,11 +79,6 @@ public class SecurityConfiguration {
      */
     private final AuthenticationProvider authenticationProvider;
 
-    /**
-     * Logout handler for handling user logout.
-     */
-    private final LogoutHandler logoutHandler;
-
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
@@ -113,45 +107,45 @@ public class SecurityConfiguration {
                         )
                         .permitAll()
 
-                        .requestMatchers(CUSTOMERS).hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, CUSTOMERS).hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
-                        .requestMatchers(POST, CUSTOMERS).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
-                        .requestMatchers(DELETE, CUSTOMERS).hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
+                        .requestMatchers(CUSTOMERS).hasAnyRole(ADMIN.name(), USER.name(), RECEPTIONIST.name())
+                        .requestMatchers(GET, CUSTOMERS).hasAnyAuthority(USER_READ.name())
+                        .requestMatchers(POST, CUSTOMERS).hasAnyAuthority(USER_CREATE.name())
+                        .requestMatchers(DELETE, CUSTOMERS).hasAnyAuthority(USER_DELETE.name())
 
-                        .requestMatchers(SERVICES).hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, SERVICES).hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
-                        .requestMatchers(POST, SERVICES).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
-                        .requestMatchers(DELETE, SERVICES).hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
+                        .requestMatchers(SERVICES).hasAnyRole(ADMIN.name(), USER.name(), RECEPTIONIST.name())
+                        .requestMatchers(GET, SERVICES).hasAnyAuthority(USER_READ.name())
+                        .requestMatchers(POST, SERVICES).hasAnyAuthority(USER_CREATE.name())
+                        .requestMatchers(DELETE, SERVICES).hasAnyAuthority(USER_DELETE.name())
 
                         .requestMatchers("/api/v1/register").hasAnyRole(ADMIN.name())
                         .requestMatchers(POST,"/api/v1/register").hasAnyAuthority(ADMIN_CREATE.name())
 
-                        .requestMatchers(SERVICE_TYPES).hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, SERVICE_TYPES).hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
-                        .requestMatchers(POST, SERVICE_TYPES).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
-                        .requestMatchers(DELETE, SERVICE_TYPES).hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
-                        .requestMatchers(PUT, SERVICE_TYPES).hasAnyAuthority(ADMIN_UPDATE.name(),USER_UPDATE.name())
+                        .requestMatchers(SERVICE_TYPES).hasAnyRole(ADMIN.name(), USER.name(), RECEPTIONIST.name())
+                        .requestMatchers(GET, SERVICE_TYPES).hasAnyAuthority(USER_READ.name())
+                        .requestMatchers(POST, SERVICE_TYPES).hasAnyAuthority(USER_CREATE.name())
+                        .requestMatchers(DELETE, SERVICE_TYPES).hasAnyAuthority(USER_DELETE.name())
+                        .requestMatchers(PUT, SERVICE_TYPES).hasAnyAuthority(USER_UPDATE.name())
 
-                        .requestMatchers(VEHICLES).hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, VEHICLES).hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
-                        .requestMatchers(POST, VEHICLES).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
-                        .requestMatchers(DELETE, VEHICLES).hasAnyAuthority(ADMIN_DELETE.name(), USER_DELETE.name())
-                        .requestMatchers(PUT, VEHICLES).hasAnyAuthority(ADMIN_UPDATE.name(),USER_UPDATE.name())
+                        .requestMatchers(VEHICLES).hasAnyRole(ADMIN.name(), USER.name(), RECEPTIONIST.name())
+                        .requestMatchers(GET, VEHICLES).hasAnyAuthority(USER_READ.name())
+                        .requestMatchers(POST, VEHICLES).hasAnyAuthority(USER_CREATE.name())
+                        .requestMatchers(DELETE, VEHICLES).hasAnyAuthority(USER_DELETE.name())
+                        .requestMatchers(PUT, VEHICLES).hasAnyAuthority(USER_UPDATE.name())
 
-                        .requestMatchers(DELETE, "/api/v1/users").hasAnyAuthority(ADMIN_DELETE.name())
-                        .requestMatchers(PUT, "/api/v1/users").hasAnyAuthority(ADMIN_UPDATE.name(),USER_UPDATE.name())
+                        .requestMatchers(DELETE, "/api/v1/users").hasAnyAuthority(USER_DELETE.name())
+                        .requestMatchers(PUT, "/api/v1/users").hasAnyAuthority(USER_UPDATE.name())
 
-                        .requestMatchers("/api/v1/download-invoice/*").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/download-invoice/*").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
+                        .requestMatchers("/api/v1/download-invoice/*").hasAnyRole(ADMIN.name(), USER.name(), RECEPTIONIST.name())
+                        .requestMatchers(GET, "/api/v1/download-invoice/*").hasAnyAuthority(USER_READ.name())
 
-                        .requestMatchers("/api/v1/dashboard").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(GET, "/api/v1/dashboard").hasAnyAuthority(ADMIN_READ.name(), USER_READ.name())
+                        .requestMatchers("/api/v1/dashboard").hasAnyRole(ADMIN.name(), USER.name(), RECEPTIONIST.name())
+                        .requestMatchers(GET, "/api/v1/dashboard").hasAnyAuthority(USER_READ.name())
 
-                        .requestMatchers(REVENUE).hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(POST, REVENUE).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+                        .requestMatchers(REVENUE).hasAnyRole(ADMIN.name(), USER.name(), RECEPTIONIST.name())
+                        .requestMatchers(POST, REVENUE).hasAnyAuthority(USER_CREATE.name())
 
-                        .requestMatchers("/api/v1/email").hasAnyRole(ADMIN.name(), USER.name())
-                        .requestMatchers(POST, REVENUE).hasAnyAuthority(ADMIN_CREATE.name(), USER_CREATE.name())
+                        .requestMatchers("/api/v1/email").hasAnyRole(ADMIN.name(), USER.name(), RECEPTIONIST.name())
+                        .requestMatchers(POST, "/api/v1/email").hasAnyAuthority(USER_CREATE.name())
 
                         .requestMatchers(CUSTOMER_REPORTS).hasAnyRole(ADMIN.name(), RECEPTIONIST.name(), USER.name(), MECHANIC.name())
                         .requestMatchers(GET, CUSTOMER_REPORTS).hasAnyAuthority(CUSTOMER_REPORT_READ.name())
@@ -171,11 +165,6 @@ public class SecurityConfiguration {
                 )
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .logout(logout -> logout
-                        .logoutUrl("/api/v1/auth/logout")
-                        .addLogoutHandler(logoutHandler)
-                        .logoutSuccessHandler(
-                                (request, response, authentication) -> SecurityContextHolder.clearContext()))
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                 );

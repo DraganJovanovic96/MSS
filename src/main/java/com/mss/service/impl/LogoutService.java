@@ -2,6 +2,7 @@ package com.mss.service.impl;
 
 
 import com.mss.repository.TokenRepository;
+import com.mss.util.CookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -38,19 +39,30 @@ public class LogoutService implements LogoutHandler {
             HttpServletResponse response,
             Authentication authentication
     ) {
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return;
+        final String jwt = CookieUtil.getAccessTokenFromCookies(request.getCookies());
+        final String refreshToken = CookieUtil.getRefreshTokenFromCookies(request.getCookies());
+        
+        if (jwt != null && !jwt.isEmpty()) {
+            var storedToken = tokenRepository.findByToken(jwt)
+                    .orElse(null);
+            if (storedToken != null) {
+                storedToken.setExpired(true);
+                storedToken.setRevoked(true);
+                tokenRepository.save(storedToken);
+            }
         }
-        jwt = authHeader.substring(7);
-        var storedToken = tokenRepository.findByToken(jwt)
-                .orElse(null);
-        if (storedToken != null) {
-            storedToken.setExpired(true);
-            storedToken.setRevoked(true);
-            tokenRepository.save(storedToken);
-            SecurityContextHolder.clearContext();
+        
+        if (refreshToken != null && !refreshToken.isEmpty()) {
+            var storedRefreshToken = tokenRepository.findByToken(refreshToken)
+                    .orElse(null);
+            if (storedRefreshToken != null) {
+                storedRefreshToken.setExpired(true);
+                storedRefreshToken.setRevoked(true);
+                tokenRepository.save(storedRefreshToken);
+            }
         }
+        
+        CookieUtil.clearAuthCookies(response);
+        SecurityContextHolder.clearContext();
     }
 }
