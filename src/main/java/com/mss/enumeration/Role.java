@@ -55,10 +55,17 @@ public enum Role {
     ),
 
     /**
-     * Receptionist role for creating customer reports.
+     * Receptionist role for creating customer reports and managing them.
      */
     RECEPTIONIST(
             Set.of(
+                    USER_READ,
+                    USER_UPDATE,
+                    USER_DELETE,
+                    USER_CREATE,
+                    VACATION_READ,
+                    VACATION_CREATE,
+                    VACATION_DELETE,
                     CUSTOMER_REPORT_READ,
                     CUSTOMER_REPORT_CREATE,
                     CUSTOMER_REPORT_UPDATE,
